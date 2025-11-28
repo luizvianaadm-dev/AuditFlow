@@ -4,9 +4,9 @@ Este arquivo contém o contexto e regras para agentes de IA (Google Jules, Copil
 
 1. Contexto do Projeto
 
-Nome: AuditFlow Dashboard
+Nome: AuditFlow Platform
 
-Objetivo: Visualização de dados contábeis para detecção de fraudes e anomalias (Lei de Benford, Outliers).
+Objetivo: Plataforma Full Stack de automação de auditoria passo a passo, em conformidade com as Normas NBC TAs e Normas de Contabilidade, incluindo visualização de dados para detecção de fraudes.
 
 Público: Auditores e Contadores (interface deve ser séria, limpa e profissional).
 
