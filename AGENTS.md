@@ -4,9 +4,9 @@ Este arquivo contém o contexto e regras para agentes de IA (Google Jules, Copil
 
 1. Contexto do Projeto
 
-Nome: AuditFlow Dashboard
+Nome: AuditFlow Platform
 
-Objetivo: Visualização de dados contábeis para detecção de fraudes e anomalias (Lei de Benford, Outliers).
+Objetivo: Plataforma Full Stack de automação de auditoria passo a passo, em conformidade com as Normas NBC TAs e Normas de Contabilidade, incluindo visualização de dados para detecção de fraudes.
 
 Público: Auditores e Contadores (interface deve ser séria, limpa e profissional).
 
@@ -22,7 +22,17 @@ Gráficos: Recharts (para gráficos de linha, pizza e barras).
 
 Ícones: Lucide-React.
 
-3. Padrões de UI/UX (Design System)
+3. Stack Tecnológica (Backend)
+
+Framework: FastAPI.
+
+Linguagem: Python 3.10+.
+
+Tipagem: Obrigatório o uso de Type Hints (tipagem estrita) em todas as funções e modelos.
+
+Dependências de Dados: Pandas, Numpy.
+
+4. Padrões de UI/UX (Design System)
 
 Paleta de Cores:
 
@@ -42,7 +52,7 @@ Use rounded-xl para cartões.
 
 Sombras suaves (shadow-sm) em elementos brancos.
 
-4. Regras de Dados (Mock vs Real)
+5. Regras de Dados (Mock vs Real)
 
 Ao criar novas visualizações, se não houver backend conectado, crie uma função geradora de dados falsos (mock) no início do arquivo (ex: generateTransactions(count)).
 
@@ -50,7 +60,7 @@ Formatação de Moeda: Sempre use pt-BR (R$).
 
 Ex: value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-5. Diretrizes de Código
+6. Diretrizes de Código
 
 Componentização: Se um componente visual (como um Card ou Gráfico) tiver mais de 100 linhas, separe-o em um componente funcional menor dentro do mesmo arquivo ou pasta.
 
@@ -62,7 +72,7 @@ Mantenha imports de bibliotecas (React, Recharts) no topo.
 
 Imports de ícones (Lucide) logo abaixo.
 
-6. O que NÃO fazer
+7. O que NÃO fazer
 
 ❌ Não use Bootstrap ou Material UI. Use apenas classes utilitárias do Tailwind.
 
