@@ -3,8 +3,17 @@ from typing import Dict, List, Any, Optional
 from pydantic import BaseModel
 from src.scripts.benford_analysis import calculate_benford
 from src.scripts.duplicate_analysis import find_duplicates
+from src.api.database import engine, Base
+from src.api import models  # Import models to register them with Base
+from src.api.routes import clients
+
+# Create tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AuditFlow API")
+
+# Include Routers
+app.include_router(clients.router)
 
 class TransactionList(BaseModel):
     values: List[float]

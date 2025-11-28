@@ -5,3 +5,4 @@ numpy
 python-multipart
 thefuzz
 python-levenshtein
+sqlalchemy
