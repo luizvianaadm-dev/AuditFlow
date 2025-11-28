@@ -1,0 +1,53 @@
+name: Gemini AI Developer
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  code-generation:
+    if: contains(github.event.issue.labels.*.name, 'gemini-task')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar Dependências
+        run: pip install google-generativeai
+
+      - name: Executar Agente Gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        # AQUI ESTÁ A MUDANÇA: Apontando para sua pasta 'roteiros'
+        run: python roteiros/gemini_coder.py
+
+      - name: Commit e Push das Mudanças
+        run: |
+          git config --global user.name 'Gemini Bot'
+          git config --global user.email 'gemini-bot@users.noreply.github.com'
+          git add .
+          git commit -m "feat: Implementação automática via Gemini AI (Issue #${{ github.event.issue.number }})"
+          git push
+        continue-on-error: true
+
+      - name: Comentar na Issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **Tarefa Concluída!** O Gemini atualizou o código na pasta roteiros/ ou onde foi solicitado.'
+            })
