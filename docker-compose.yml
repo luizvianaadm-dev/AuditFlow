@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: auditflow_db
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=auditflow
+      - POSTGRES_PASSWORD=auditflow_secure_password
+      - POSTGRES_DB=auditflow_db
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: auditflow_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: auditflow_api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://auditflow:auditflow_secure_password@db:5432/auditflow_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=change_this_secret_in_production
+    depends_on:
+      - db
+      - redis
+    volumes:
+      # Mount src for hot reload during development
+      - ./src:/app/src
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: auditflow_worker
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://auditflow:auditflow_secure_password@db:5432/auditflow_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./src:/app/src
+    command: celery -A src.api.tasks.celery_app worker --loglevel=info
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: auditflow_ui
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
