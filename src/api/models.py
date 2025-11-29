@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from src.api.database import Base
@@ -45,6 +45,7 @@ class Engagement(Base):
 
     client = relationship("Client", back_populates="engagements")
     transactions = relationship("Transaction", back_populates="engagement")
+    analysis_results = relationship("AnalysisResult", back_populates="engagement")
 
 class Transaction(Base):
     __tablename__ = "transactions"
@@ -57,3 +58,15 @@ class Transaction(Base):
     amount = Column(Float)
 
     engagement = relationship("Engagement", back_populates="transactions")
+
+class AnalysisResult(Base):
+    __tablename__ = "analysis_results"
+
+    id = Column(Integer, primary_key=True, index=True)
+    engagement_id = Column(Integer, ForeignKey("engagements.id"))
+    test_type = Column(String) # 'benford', 'duplicates'
+    result = Column(JSON)
+    executed_at = Column(DateTime, default=datetime.utcnow)
+    executed_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    engagement = relationship("Engagement", back_populates="analysis_results")

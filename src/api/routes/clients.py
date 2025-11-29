@@ -16,11 +16,10 @@ router = APIRouter(
 
 @router.post("/", response_model=schemas.ClientRead)
 def create_client(
-    client: schemas.ClientBase, # Removed firm_id from input, inferred from user
+    client: schemas.ClientBase,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    # Ensure client name is unique for this firm
     existing = db.query(models.Client).filter(
         models.Client.firm_id == current_user.firm_id,
         models.Client.name == client.name
@@ -42,26 +41,19 @@ def read_clients(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    # Filter by user's firm_id
     clients = db.query(models.Client).filter(
         models.Client.firm_id == current_user.firm_id
     ).offset(skip).limit(limit).all()
     return clients
 
-@router.post("/{client_id}/upload-ledger", status_code=status.HTTP_201_CREATED)
-def upload_ledger(
+# --- Sub-resource: Engagements ---
+
+@router.get("/{client_id}/engagements", response_model=List[schemas.EngagementRead])
+def read_client_engagements(
     client_id: int,
-    file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    """
-    Uploads a general ledger CSV and creates transactions for the client.
-    Creates a new Engagement automatically named 'Imported Ledger {Timestamp}'.
-
-    Note: defined as sync def to run in threadpool because pd.read_csv is blocking.
-    """
-    # 1. Verify Client belongs to user's firm
     client = db.query(models.Client).filter(
         models.Client.id == client_id,
         models.Client.firm_id == current_user.firm_id
@@ -70,56 +62,37 @@ def upload_ledger(
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
 
-    # 2. Parse CSV
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="File must be a CSV")
+    return client.engagements
 
-    try:
-        content = file.file.read()
-        df = pd.read_csv(io.BytesIO(content))
+@router.post("/{client_id}/engagements", response_model=schemas.EngagementRead)
+def create_client_engagement(
+    client_id: int,
+    engagement: schemas.EngagementCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    client = db.query(models.Client).filter(
+        models.Client.id == client_id,
+        models.Client.firm_id == current_user.firm_id
+    ).first()
 
-        required_cols = {'vendor', 'amount'}
-        df.columns = [c.lower() for c in df.columns]
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
 
-        if not required_cols.issubset(set(df.columns)):
-             raise HTTPException(status_code=400, detail=f"CSV must contain columns: {required_cols}")
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error reading CSV: {str(e)}")
-
-    # 3. Create Engagement
-    current_year = datetime.now().year
-    engagement_name = f"Imported Ledger {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-
-    new_engagement = models.Engagement(
-        name=engagement_name,
-        year=current_year,
+    db_engagement = models.Engagement(
+        name=engagement.name,
+        year=engagement.year,
         client_id=client.id
     )
-    db.add(new_engagement)
+    db.add(db_engagement)
     db.commit()
-    db.refresh(new_engagement)
+    db.refresh(db_engagement)
+    return db_engagement
 
-    # 4. Create Transactions
-    transactions = []
-    for _, row in df.iterrows():
-        tx_date = None
-        if 'date' in df.columns and pd.notna(row['date']):
-            try:
-                tx_date = pd.to_datetime(row['date']).to_pydatetime()
-            except:
-                pass
-
-        tx = models.Transaction(
-            engagement_id=new_engagement.id,
-            vendor=str(row['vendor']),
-            amount=float(row['amount']),
-            description=str(row.get('description', '')),
-            date=tx_date
-        )
-        transactions.append(tx)
-
-    db.add_all(transactions)
-    db.commit()
-
-    return {"message": f"Successfully imported {len(transactions)} transactions to engagement '{engagement_name}'"}
+# Deprecated or Legacy Upload (creates new engagement automatically)
+# Keeping it if needed, or we can rely on the new engagement flow.
+# Let's keep it but maybe mark as legacy?
+# Actually, I'll remove it to force usage of the new structured flow:
+# 1. Create Client
+# 2. Create Engagement
+# 3. Upload to Engagement (via /engagements/.../upload)

@@ -1,6 +1,23 @@
 from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 from datetime import datetime
+
+# --- Analysis Schemas ---
+class AnalysisResultBase(BaseModel):
+    test_type: str
+    result: Dict[str, Any]
+
+class AnalysisResultCreate(AnalysisResultBase):
+    pass
+
+class AnalysisResultRead(AnalysisResultBase):
+    id: int
+    engagement_id: int
+    executed_at: datetime
+    executed_by_user_id: Optional[int]
+
+    class Config:
+        from_attributes = True
 
 # --- Transaction Schemas ---
 class TransactionBase(BaseModel):
@@ -31,6 +48,7 @@ class EngagementRead(EngagementBase):
     id: int
     client_id: int
     transactions: List[TransactionRead] = []
+    # analysis_results: List[AnalysisResultRead] = [] # Optional to include
 
     class Config:
         from_attributes = True

@@ -6,7 +6,7 @@ from src.scripts.benford_analysis import calculate_benford
 from src.scripts.duplicate_analysis import find_duplicates
 from src.api.database import engine, Base
 from src.api import models  # Import models to register them with Base
-from src.api.routes import clients, auth, register
+from src.api.routes import clients, auth, register, engagements, analysis
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -26,6 +26,8 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(register.router)
 app.include_router(clients.router)
+app.include_router(engagements.router)
+app.include_router(analysis.router)
 
 class TransactionList(BaseModel):
     values: List[float]
