@@ -10,7 +10,7 @@ from src.api import models, schemas
 from src.api.deps import get_current_user
 
 router = APIRouter(
-    prefix="/engagements", # Changed prefix to /engagements for clarity
+    prefix="/engagements",
     tags=["engagements"]
 )
 
@@ -40,6 +40,7 @@ def upload_transactions_to_engagement(
 ):
     """
     Uploads a CSV to an existing engagement.
+    Supported columns: vendor, amount, date, description, account_code, account_name
     """
     # 1. Verify Engagement permissions
     engagement = db.query(models.Engagement).join(models.Client).filter(
@@ -58,9 +59,11 @@ def upload_transactions_to_engagement(
         content = file.file.read()
         df = pd.read_csv(io.BytesIO(content))
 
-        required_cols = {'vendor', 'amount'}
-        df.columns = [c.lower() for c in df.columns]
+        # Normalize columns
+        df.columns = [c.lower().strip() for c in df.columns]
 
+        # Basic Validation
+        required_cols = {'vendor', 'amount'}
         if not required_cols.issubset(set(df.columns)):
              raise HTTPException(status_code=400, detail=f"CSV must contain columns: {required_cols}")
 
@@ -77,12 +80,21 @@ def upload_transactions_to_engagement(
             except:
                 pass
 
+        # Extract account info if present (supports aliases)
+        account_code = str(row.get('account_code') or row.get('conta') or row.get('code') or '')
+        if account_code == 'nan': account_code = None
+
+        account_name = str(row.get('account_name') or row.get('description') or row.get('descricao') or '')
+        if account_name == 'nan': account_name = None
+
         tx = models.Transaction(
             engagement_id=engagement.id,
             vendor=str(row['vendor']),
             amount=float(row['amount']),
             description=str(row.get('description', '')),
-            date=tx_date
+            date=tx_date,
+            account_code=account_code,
+            account_name=account_name
         )
         transactions.append(tx)
 

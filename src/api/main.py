@@ -6,7 +6,7 @@ from src.scripts.benford_analysis import calculate_benford
 from src.scripts.duplicate_analysis import find_duplicates
 from src.api.database import engine, Base
 from src.api import models  # Import models to register them with Base
-from src.api.routes import clients, auth, register, engagements, analysis
+from src.api.routes import clients, auth, register, engagements, analysis, mapping, planning, circularization, acceptance, team, sampling, payroll, workpapers
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -28,6 +28,14 @@ app.include_router(register.router)
 app.include_router(clients.router)
 app.include_router(engagements.router)
 app.include_router(analysis.router)
+app.include_router(mapping.router)
+app.include_router(planning.router)
+app.include_router(circularization.router)
+app.include_router(acceptance.router)
+app.include_router(team.router)
+app.include_router(sampling.router)
+app.include_router(payroll.router)
+app.include_router(workpapers.router)
 
 class TransactionList(BaseModel):
     values: List[float]

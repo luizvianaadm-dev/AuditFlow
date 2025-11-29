@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-import pandas as pd
-import io
-from datetime import datetime
 
 from src.api.database import get_db
 from src.api import models, schemas
@@ -82,17 +79,10 @@ def create_client_engagement(
     db_engagement = models.Engagement(
         name=engagement.name,
         year=engagement.year,
+        service_type=engagement.service_type,
         client_id=client.id
     )
     db.add(db_engagement)
     db.commit()
     db.refresh(db_engagement)
     return db_engagement
-
-# Deprecated or Legacy Upload (creates new engagement automatically)
-# Keeping it if needed, or we can rely on the new engagement flow.
-# Let's keep it but maybe mark as legacy?
-# Actually, I'll remove it to force usage of the new structured flow:
-# 1. Create Client
-# 2. Create Engagement
-# 3. Upload to Engagement (via /engagements/.../upload)

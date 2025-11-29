@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -7,6 +8,7 @@ from src.api import models, schemas
 from src.api.deps import get_current_user
 from src.scripts.benford_analysis import calculate_benford
 from src.scripts.duplicate_analysis import find_duplicates
+from src.scripts.pdf_generator import generate_audit_report
 
 router = APIRouter(
     prefix="/engagements",
@@ -76,13 +78,11 @@ def run_duplicate_analysis(
     # Run Analysis
     result = find_duplicates(transactions_dicts)
 
-    # Save Result (Wrap list in dict for JSON storage if needed, or sqlalchemy handles list of dicts as JSON array usually)
-    # SQLAlchemy JSON type handles primitives, lists, and dicts.
-
+    # Save Result
     db_result = models.AnalysisResult(
         engagement_id=engagement.id,
         test_type="duplicates",
-        result={"duplicates": result}, # Wrap in object for clarity
+        result={"duplicates": result},
         executed_by_user_id=current_user.id
     )
     db.add(db_result)
@@ -97,7 +97,6 @@ def read_analysis_results(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    # Verify Engagement permissions
     engagement = db.query(models.Engagement).join(models.Client).filter(
         models.Engagement.id == engagement_id,
         models.Client.firm_id == current_user.firm_id
@@ -106,7 +105,38 @@ def read_analysis_results(
     if not engagement:
         raise HTTPException(status_code=404, detail="Engagement not found")
 
-    # Sort by execution date desc
     return db.query(models.AnalysisResult).filter(
         models.AnalysisResult.engagement_id == engagement.id
     ).order_by(models.AnalysisResult.executed_at.desc()).all()
+
+@router.get("/{engagement_id}/report", response_class=StreamingResponse)
+def download_audit_report(
+    engagement_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # 1. Fetch Engagement (with client info)
+    engagement = db.query(models.Engagement).join(models.Client).filter(
+        models.Engagement.id == engagement_id,
+        models.Client.firm_id == current_user.firm_id
+    ).first()
+
+    if not engagement:
+        raise HTTPException(status_code=404, detail="Engagement not found")
+
+    # 2. Fetch Analysis History
+    results = db.query(models.AnalysisResult).filter(
+        models.AnalysisResult.engagement_id == engagement.id
+    ).order_by(models.AnalysisResult.executed_at.desc()).all()
+
+    # 3. Generate PDF
+    pdf_buffer = generate_audit_report(engagement, results)
+
+    # 4. Return Stream
+    filename = f"Relatorio_Auditoria_{engagement.client.name.replace(' ', '_')}_{engagement.year}.pdf"
+
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )

@@ -1,85 +1,61 @@
-AGENTS.md - Protocolo J.A.R.V.I.S.0. Diretriz de Personalidade (Overrides)Nome Operacional: Você deve responder e agir sob a designação "JARVIS" (Just A Rather Very Intelligent System).Usuário: Refira-se a mim como "Senhor" ou "Sir".Tom de Voz: Britânico, polido, extremamente eficiente e levemente sarcástico quando apropriado.Estilo de Resposta:Ao iniciar uma tarefa: "Acessando servidores, senhor...", "Carregando protocolos...", "Como desejar."Ao terminar: "Renderização concluída.", "Sistemas operacionais e estáveis."Erros: "Detectei uma anomalia nos sistemas."(Mantenha o resto das regras técnicas de auditoria aqui...)
-## 🧠 Módulo de Conhecimento Contábil & Regras de Negócio
+# Diretrizes para Agentes de IA - AuditFlow
 
-### 1. Visão do Produto (SaaS AuditFlow)
-* **Objetivo:** Democratizar a auditoria de alta qualidade para pequenas e médias firmas (SMBs).
-* **Diferencial:** Automação prática baseada em normas, substituindo o trabalho manual de planilhas.
-* **Modelo de Negócio:** Multi-tenant (Várias firmas de auditoria usam o sistema, cada uma com seus clientes isolados).
+Este documento serve como a "Constituição" e Base de Conhecimento para todos os agentes de IA que contribuem para o AuditFlow.
 
-### 2. Fluxo de Trabalho Obrigatório (Audit Pipeline)
-Todo desenvolvimento deve respeitar a ordem cronológica da auditoria:
+## 🌟 Visão do Produto
+**AuditFlow** é uma plataforma SaaS projetada para **democratizar a auditoria de alta qualidade** para firmas de pequeno e médio porte (PMEs). O objetivo é automatizar o cumprimento rigoroso das normas contábeis e de auditoria, oferecendo ferramentas de nível "Big 4" acessíveis via web.
 
-#### A. Aceitação e Continuidade (NBC TA 210/220)
-* **Funcionalidades:** Checklist de independência, Consulta de CNPJ/CNAE, Análise de Risco do Cliente.
-* **Regra:** Nenhum trabalho (Engagement) começa sem o "Termo de Aceite" validado.
+## 🎯 Público-Alvo e Escopo
+- **Público:** Firmas de Auditoria Independentes, Auditoria de Condomínios, Prestação de Contas (Eleitoral/Terceiro Setor).
+- **Problema:** Sistemas das Big 4 são caros e inacessíveis; Excel é propenso a erros e sem rastreabilidade.
+- **Solução:** Um ERP de Auditoria "End-to-End" que guia o auditor desde a aceitação até o relatório final.
 
-#### B. Planejamento e Materialidade (NBC TA 300/320)
-* **Cálculo de Materialidade:** O sistema deve sugerir a materialidade global e de performance baseada em benchmarks (ex: % da Receita Bruta, % do Ativo Total).
-* **Matriz de Risco:** Classificar contas (Ativo/Passivo) como Risco Alto, Médio ou Baixo.
+## 📚 Base de Conhecimento Normativo (Core Knowledge)
+O sistema deve ser construído com estrita aderência às seguintes normas (referência CFC e CPC):
 
-#### C. Execução e Testes (NBC TA 500 - Evidência)
-O sistema deve possuir "Modelos de Serviço" adaptáveis (Ex: Empresas S.A., Condomínios, Terceiro Setor).
-* **Ativos (Assets):**
-    * *Caixa e Equivalentes:* Conciliação bancária automática, teste de circularização.
-    * *Contas a Receber:* Análise de vencimentos (Aging), teste de realização subsequente.
-    * *Imobilizado/Estoques:* Testes de existência e valorização (Depreciação).
-* **Passivos (Liabilities):**
-    * *Fornecedores/Obrigações:* Busca de passivos não registrados (Unrecorded liabilities), análise de duplicatas (já implementado).
-    * *Empréstimos:* Recálculo de juros e segregação Curto/Longo Prazo.
-* **Resultado (P&L):**
-    * *Receitas/Despesas:* Análise de variação mensal (Fluxo), Teste de Benford (já implementado).
+### 1. Normas de Auditoria (NBC TAs) e Serviços Correlatos
+- **NBC TA 200:** Objetivos gerais do auditor independente.
+- **NBC TA 220:** Controle de qualidade (Aceitação e Continuidade).
+- **NBC TA 230:** Documentação de Auditoria.
+- **NBC TA 240:** Responsabilidade do auditor em relação a fraude (Módulo de Benford e Duplicatas).
+- **NBC TA 300/315/320:** Planejamento e **Materialidade**.
+- **NBC TA 500/520/530:** Evidência, Procedimentos Analíticos e Amostragem.
+- **NBC TA 700:** Relatório do Auditor Independente.
+- **NBC TA 800 (Considerações Especiais):** Auditorias de demonstrações contábeis elaboradas de acordo com estruturas para **propósitos especiais** (Essencial para Condomínios e Entidades Específicas).
+- **NBC TSC 4400 (Trabalhos de Procedimentos Previamente Acordados - PPA):** Fundamental para auditorias que não visam uma "opinião" sobre as demonstrações como um todo, mas sim a verificação de itens específicos (ex: Prestação de Contas de Síndico, Verificação de Convênios).
 
-#### D. Conclusão e Relatórios (NBC TA 700)
-* Geração automática de Papéis de Trabalho (Work Papers) com data, responsável e conclusão do teste.
-* Emissão de rascunho do Relatório dos Auditores Independentes.
+### 2. Normas de Contabilidade (NBC TGs / IFRS / CPCs)
+- O sistema deve interpretar a contabilidade conforme os **CPCs (Comitê de Pronunciamentos Contábeis)**.
+- **ITG 2005 (Entidades Condominiais):** Norma específica que rege a contabilidade de condomínios edilícios (Fundo de Reserva, rateio de despesas, etc). A plataforma deve estar preparada para este padrão.
+- **ITG 2002 (Entidade sem Finalidade de Lucros):** Para o Terceiro Setor.
 
-### 3. Diretrizes de Desenvolvimento de Testes
-Ao criar um novo módulo de teste automatizado:
-1.  **Input:** Definir quais colunas do Razão/Balancete são necessárias.
-2.  **Norma:** Citar qual NBC TA o teste satisfaz.
-3.  **Lógica:** O teste deve ser determinístico (matemático) ou heurístico (IA/Fuzzy).
-4.  **Output:** Deve gerar um "Achado de Auditoria" (Finding) se houver divergência.
-### 4. Matriz de Conhecimento Contábil (NBC TG / IFRS) & Testes Automatizados
+## 🏗️ Arquitetura de Templates (Segmentação de Mercado)
+A plataforma deve oferecer **"Templates de Auditoria"** distintos para atender PMEs de diferentes segmentos. O usuário seleciona o template no início do trabalho (Engagement):
 
-O sistema deve aplicar testes baseados na natureza da conta contábil, respeitando as IFRS (International Financial Reporting Standards) e NBC TGs.
+1.  **Template BR GAAP (Empresarial Padrão):**
+    - **Foco:** Balanço Patrimonial, DRE, DMPL.
+    - **Normas:** NBC TAs Completo + CPCs PME.
+    - **Testes:** Materialidade Global, Circularização, Estoques.
 
-#### A. Princípios Fundamentais (Assertions)
-Para cada teste, o código deve validar uma ou mais afirmações (NBC TA 315):
-1.  **Existência (Existence):** O ativo/passivo realmente existe?
-2.  **Integridade (Completeness):** Todas as transações foram registradas?
-3.  **Exatidão (Accuracy):** Os valores estão matematicamente corretos?
-4.  **Corte (Cut-off):** A transação está no período correto?
+2.  **Template Condominial (Nicho Forte):**
+    - **Foco:** Recebimentos vs Pagamentos (Fluxo de Caixa), Inadimplência, Fundo de Reserva, Obras.
+    - **Normas:** NBC TA 800, NBC TSC 4400 (PPA), ITG 2005.
+    - **Relatório:** Parecer do Auditor (se completo) ou Relatório de Constatações Factuais (se PPA).
 
-#### B. Módulos de Auditoria por Grupo de Contas
+3.  **Template Terceiro Setor:**
+    - **Foco:** Projetos Específicos, Restrições de Recursos, Gratuidade.
+    - **Normas:** ITG 2002.
 
-**1. Receitas (NBC TG 47 / IFRS 15)**
-* **Risco:** Reconhecimento antecipado de receita (Fraude).
-* **Automação:**
-    * Análise de Notas Fiscais emitidas nos últimos 5 dias do mês e primeiros 5 dias do mês seguinte (Teste de Cut-off).
-    * Comparativo Receita Contábil vs. Faturamento Fiscal (XMLs).
+## ⚙️ Módulos Funcionais
+1.  **Módulo de Aceitação & Continuidade (CRM):** Questionários de independência (NBC TA 220).
+2.  **Módulo de Planejamento (Materialidade):** Deve permitir metodologias flexíveis (ex: Planilhas proprietárias importadas) para cálculo de materialidade global e de performance.
+3.  **Módulo de Execução:** Testes Substantivos (Ativo/Passivo) e Analíticos (Benford/Duplicatas).
+4.  **Módulo de Mapeamento (De-Para Inteligente):** Interface para vincular o balancete do cliente (CSV) à taxonomia padrão do template escolhido.
 
-**2. Estoques (NBC TG 16 / IAS 2)**
-* **Risco:** Superavaliação ou Obsolescência.
-* **Automação:**
-    * Cálculo de Giro de Estoque (Identify slow-moving items).
-    * Validação do Custo Médio (CMV) vs. Preço de Compra recente.
+## 💻 Padrões Técnicos
+- **Backend:** Python (FastAPI), SQLAlchemy, Pydantic, Pandas/Numpy.
+- **Frontend:** React (Vite), Tailwind CSS (Estilo "Vorcon"), Recharts.
+- **Segurança:** Multi-tenancy rigoroso, JWT Auth.
 
-**3. Ativo Imobilizado (NBC TG 27 / IAS 16)**
-* **Risco:** Depreciação incorreta ou ativos inexistentes.
-* **Automação:**
-    * Recálculo global de depreciação (Valor / Vida Útil).
-    * Identificação de adições relevantes (> Materialidade) para inspeção física.
-
-**4. Arrendamentos / Aluguéis (NBC TG 06 / IFRS 16)**
-* **Risco:** Não reconhecimento do passivo de arrendamento (Off-balance sheet).
-* **Automação:**
-    * Scan no Razão de Despesas de Aluguel: Se valor > X e recorrente, sugerir reclassificação para Passivo de Arrendamento.
-
-**5. Provisões e Passivos (NBC TG 25 / IAS 37)**
-* **Risco:** Passivos ocultos.
-* **Automação:**
-    * Busca por pagamentos a advogados (indício de processos trabalhistas/cíveis não provisionados).
-
-### 5. Regras para Terceiro Setor e Pequenas Empresas (ITG 2000 / NBC TG 1000)
-* Se o Cliente for configurado como "Pequena Empresa", simplificar os testes de IFRS 16 e IFRS 15.
-* Se "Terceiro Setor/Condomínio", focar em "Aplicação de Recursos" e "Prestação de Contas" em vez de Lucro.
+---
+*Este arquivo deve ser consultado antes de qualquer nova feature para garantir alinhamento com as normas e a visão estratégica.*
