@@ -6,3 +6,6 @@ python-multipart
 thefuzz
 python-levenshtein
 sqlalchemy
+passlib[bcrypt]
+python-jose[cryptography]
+email-validator

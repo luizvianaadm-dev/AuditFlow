@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime
 
@@ -50,16 +50,48 @@ class ClientRead(ClientBase):
     class Config:
         from_attributes = True
 
+# --- User Schemas ---
+class UserBase(BaseModel):
+    email: EmailStr
+
+class UserCreate(UserBase):
+    password: str
+
+class UserRead(UserBase):
+    id: int
+    is_active: bool
+    role: str
+    firm_id: int
+
+    class Config:
+        from_attributes = True
+
 # --- AuditFirm Schemas ---
 class AuditFirmBase(BaseModel):
     name: str
+    cnpj: str
 
 class AuditFirmCreate(AuditFirmBase):
     pass
 
 class AuditFirmRead(AuditFirmBase):
     id: int
+    users: List[UserRead] = []
     clients: List[ClientRead] = []
 
     class Config:
         from_attributes = True
+
+# --- Auth Schemas ---
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
+class FirmRegister(BaseModel):
+    companyName: str
+    cnpj: str
+    email: EmailStr
+    password: str

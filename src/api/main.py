@@ -1,18 +1,30 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, List, Any, Optional
 from pydantic import BaseModel
 from src.scripts.benford_analysis import calculate_benford
 from src.scripts.duplicate_analysis import find_duplicates
 from src.api.database import engine, Base
 from src.api import models  # Import models to register them with Base
-from src.api.routes import clients
+from src.api.routes import clients, auth, register
 
 # Create tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AuditFlow API")
 
+# CORS Middleware (Allow React Frontend)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, replace with specific domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Include Routers
+app.include_router(auth.router)
+app.include_router(register.router)
 app.include_router(clients.router)
 
 class TransactionList(BaseModel):
