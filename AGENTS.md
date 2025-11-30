@@ -54,6 +54,8 @@ A plataforma deve oferecer **"Templates de Auditoria"** distintos para atender P
 
 ## 💻 Padrões Técnicos
 - **Backend:** Python (FastAPI), SQLAlchemy, Pydantic, Pandas/Numpy.
+- **Async/Background:** Celery + Redis (para processamento pesado).
+- **Monitoramento:** Prometheus + Grafana (Métricas), JSON Logs (Logging).
 - **Frontend:** React (Vite), Tailwind CSS (Estilo "Vorcon"), Recharts.
 - **Segurança:** Multi-tenancy rigoroso, JWT Auth.
 

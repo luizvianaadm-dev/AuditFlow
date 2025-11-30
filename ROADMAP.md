@@ -44,24 +44,42 @@ Este documento descreve o plano de desenvolvimento para transformar o protótipo
 **Objetivo:** Gerar o entregável final para o auditor.
 - [x] **Gerador de Relatórios:**
     - Exportação em PDF com cabeçalho, resumo e detalhes.
+    - Exportação em Word (DOCX) editável.
+    - Exportação de dados brutos (Excel/CSV).
 
----
-
-## 🔮 Fase 6: Expansão Pós-MVP (Próximos Passos)
+## 🧠 Fase 6: Expansão de Auditoria (Concluída)
 **Objetivo:** Implementar lógica de auditoria profunda e modelos de serviço específicos.
 
 ### 6.1 Mapeamento Inteligente (De-Para)
-- [ ] **Interface de Mapping:** Permitir que o usuário diga que a coluna "Vl. Liq." do CSV corresponde ao campo "Valor" do sistema.
-- [ ] **Taxonomia Padrão:** Criar Planos de Contas Padrão (Modelo Geral, Modelo Condomínio).
+- [x] **Interface de Mapping:** Interface para vincular colunas do CSV à taxonomia padrão.
+- [x] **Taxonomia Padrão:** Planos de Contas Padrão implementados.
 
 ### 6.2 Planejamento e Materialidade (NBC TA 320)
-- [ ] **Calculadora de Materialidade:** Wizard para definir benchmarks (Receita, Ativo Total) e percentuais para calcular a Materialidade Global e de Performance.
-- [ ] **Matriz de Risco:** Vincular contas contábeis a riscos específicos (Alto/Médio/Baixo).
+- [x] **Calculadora de Materialidade:** Wizard para definir benchmarks e calcular Materialidade Global/Performance.
+- [x] **Sumário de Ajustes:** Comparativo de erros não ajustados vs materialidade.
 
 ### 6.3 Testes Substantivos Avançados
-- [ ] **Circularização:** Módulo para gerar cartas de circularização (Fornecedores/Bancos/Advogados) em PDF/Word.
-- [ ] **Teste de Folha:** Re cálculo global da folha vs GPS/SEFIP.
-- [ ] **Amostragem Estatística (NBC TA 530):** Ferramenta para selecionar amostras aleatórias ou estratificadas para testes de detalhes.
+- [x] **Circularização:** Gerador de cartas (Bancos/Advogados/Fornecedores).
+- [x] **Teste de Folha:** Reconciliação folha contábil vs financeira.
+- [x] **Amostragem Estatística (NBC TA 530):** Amostragem Aleatória e Estratificada.
 
 ### 6.4 Módulo de Aceitação (CRM)
-- [ ] **Questionário de Independência:** Checklist para aceitação de novos clientes (NBC TA 220).
+- [x] **Questionário de Independência:** Checklist para aceitação de novos clientes (NBC TA 220).
+
+---
+
+## 🏗️ Fase 7: Infraestrutura e Otimização (Concluída)
+**Objetivo:** Preparar a aplicação para ambiente de produção robusto.
+
+- [x] **Containerização (Docker):** Criar Dockerfiles otimizados e Docker Compose para orquestração.
+- [x] **Monitoramento:** Prometheus + Grafana e Logs JSON.
+- [x] **Banco de Dados:** Migrar de SQLite para PostgreSQL (Suporte adicionado).
+- [x] **Processamento Assíncrono:** Implementar Celery/Redis.
+- [x] **CI/CD:** Pipelines de teste (Github Actions).
+
+## 💰 Fase 8: Negócios e Monetização (Concluída)
+**Objetivo:** Transformar o sistema em um produto comercializável.
+
+- [x] **Billing Engine:** Gestão de Planos, Assinaturas e Histórico de Pagamentos.
+- [x] **Landing Page:** Página pública de apresentação do produto.
+- [x] **UI/UX Profissional:** Redesign do Dashboard e Navegação.

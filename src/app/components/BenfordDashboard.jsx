@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { AlertCircle, UploadCloud, FileText, Play, History, RotateCcw, Download, Mail, ListChecks } from 'lucide-react';
-import { getTransactions, uploadTransactionFile, runBenfordAnalysis, getAnalysisResults, downloadReport } from '../services/clientService';
+import { AlertCircle, UploadCloud, FileText, Play, History, RotateCcw, Download, Mail, ListChecks, Scale } from 'lucide-react';
+import { getTransactions, uploadTransactionFile, runBenfordAnalysis, getAnalysisResults, downloadReport, downloadExport, pollTask } from '../services/clientService';
 import MaterialityWizard from './MaterialityWizard';
 import CircularizationManager from './CircularizationManager';
 import SamplingManager from './SamplingManager';
 import PayrollTest from './PayrollTest';
 import WorkProgram from './WorkProgram';
+import MistatementSummary from './MistatementSummary';
 
 const BenfordDashboard = ({ engagement, client }) => {
   const [transactions, setTransactions] = useState([]);
@@ -16,7 +17,7 @@ const BenfordDashboard = ({ engagement, client }) => {
   const [analyzing, setAnalyzing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('workpapers'); // Defaulting to Work Programs now as it's the main guide
+  const [activeTab, setActiveTab] = useState('workpapers');
 
   useEffect(() => {
     if (engagement) {
@@ -52,8 +53,17 @@ const BenfordDashboard = ({ engagement, client }) => {
       setError('');
       try {
         const data = await runBenfordAnalysis(engagement.id);
-        setResult(data.result);
-        loadHistory(); // Refresh history list
+        // Poll for completion
+        await pollTask(data.task_id);
+
+        // Refresh history
+        const historyData = await getAnalysisResults(engagement.id);
+        setHistory(historyData);
+
+        // Update current result view if available
+        if (historyData.length > 0) {
+             setResult(historyData[0].result);
+        }
       } catch (err) {
           setError(err.message);
       } finally {
@@ -82,10 +92,10 @@ const BenfordDashboard = ({ engagement, client }) => {
       setActiveTab('analysis');
   };
 
-  const handleDownloadReport = async () => {
+  const handleDownloadReport = async (format='pdf') => {
       setDownloading(true);
       try {
-          await downloadReport(engagement.id, engagement.name);
+          await downloadReport(engagement.id, engagement.name, format);
       } catch (err) {
           alert("Erro ao baixar relatório: " + err.message);
       } finally {
@@ -116,12 +126,20 @@ const BenfordDashboard = ({ engagement, client }) => {
             </div>
             <div className="flex space-x-2">
                 <button
-                    onClick={handleDownloadReport}
+                    onClick={() => handleDownloadReport('pdf')}
                     disabled={downloading}
                     className="flex items-center px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg transition-colors font-medium shadow-sm"
                 >
                     {downloading ? <RotateCcw className="w-4 h-4 mr-2 animate-spin"/> : <Download className="w-4 h-4 mr-2"/>}
-                    Relatório Final
+                    PDF
+                </button>
+                <button
+                    onClick={() => handleDownloadReport('docx')}
+                    disabled={downloading}
+                    className="flex items-center px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg transition-colors font-medium shadow-sm"
+                >
+                    {downloading ? <RotateCcw className="w-4 h-4 mr-2 animate-spin"/> : <FileText className="w-4 h-4 mr-2"/>}
+                    Word
                 </button>
             </div>
             </header>
@@ -166,6 +184,13 @@ const BenfordDashboard = ({ engagement, client }) => {
                     Circularização
                 </button>
                 <button
+                    onClick={() => setActiveTab('summary')}
+                    className={`px-6 py-3 font-medium transition-colors border-b-2 flex items-center ${activeTab === 'summary' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                >
+                    <Scale className="w-4 h-4 mr-2" />
+                    Sumário de Erros
+                </button>
+                <button
                     onClick={() => setActiveTab('history')}
                     className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === 'history' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                 >
@@ -187,14 +212,23 @@ const BenfordDashboard = ({ engagement, client }) => {
                         <div className="flex items-center space-x-4">
                             <span className="text-sm text-slate-500">{transactions.length} transações</span>
                             {transactions.length > 0 && (
-                                <button
-                                    onClick={handleRunAnalysis}
-                                    disabled={analyzing}
-                                    className={`flex items-center px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary-dark transition-colors font-medium ${analyzing ? 'opacity-70 cursor-wait' : ''}`}
-                                >
-                                    {analyzing ? <RotateCcw className="w-4 h-4 mr-2 animate-spin"/> : <Play className="w-4 h-4 mr-2"/>}
-                                    Executar Benford
-                                </button>
+                                <>
+                                    <button
+                                        onClick={handleRunAnalysis}
+                                        disabled={analyzing}
+                                        className={`flex items-center px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary-dark transition-colors font-medium ${analyzing ? 'opacity-70 cursor-wait' : ''}`}
+                                    >
+                                        {analyzing ? <RotateCcw className="w-4 h-4 mr-2 animate-spin"/> : <Play className="w-4 h-4 mr-2"/>}
+                                        Executar Benford
+                                    </button>
+                                    <button
+                                        onClick={() => downloadExport(engagement.id, 'transactions', 'xlsx')}
+                                        className="flex items-center px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg transition-colors font-medium"
+                                    >
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Excel
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>
@@ -305,6 +339,11 @@ const BenfordDashboard = ({ engagement, client }) => {
             {/* TAB CONTENT: CIRCULARIZATION */}
             {activeTab === 'circularization' && (
                 <CircularizationManager engagement={engagement} client={client} />
+            )}
+
+            {/* TAB CONTENT: SUMMARY */}
+            {activeTab === 'summary' && (
+                <MistatementSummary engagement={engagement} />
             )}
 
             {/* TAB CONTENT: HISTORY */}

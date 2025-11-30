@@ -13,6 +13,7 @@ class AuditFirm(Base):
     clients = relationship("Client", back_populates="firm")
     users = relationship("User", back_populates="firm")
     account_mappings = relationship("AccountMapping", back_populates="firm")
+    subscription = relationship("Subscription", back_populates="firm", uselist=False)
 
 class User(Base):
     __tablename__ = "users"
@@ -198,3 +199,42 @@ class Mistatement(Base):
     status = Column(String, default="open") # open, adjusted, unadjusted
 
     engagement = relationship("Engagement", back_populates="mistatements")
+
+# --- Billing ---
+
+class Plan(Base):
+    __tablename__ = "plans"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True) # Basic, Pro, Enterprise
+    price = Column(Float)
+    description = Column(String)
+    features = Column(JSON) # List of feature strings
+
+    subscriptions = relationship("Subscription", back_populates="plan")
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    firm_id = Column(Integer, ForeignKey("audit_firms.id"))
+    plan_id = Column(Integer, ForeignKey("plans.id"))
+    status = Column(String, default="active") # active, canceled, past_due
+    start_date = Column(DateTime, default=datetime.utcnow)
+    current_period_end = Column(DateTime)
+
+    firm = relationship("AuditFirm", back_populates="subscription")
+    plan = relationship("Plan", back_populates="subscriptions")
+    payments = relationship("Payment", back_populates="subscription")
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    subscription_id = Column(Integer, ForeignKey("subscriptions.id"))
+    amount = Column(Float)
+    status = Column(String) # paid, failed
+    date = Column(DateTime, default=datetime.utcnow)
+    invoice_url = Column(String, nullable=True)
+
+    subscription = relationship("Subscription", back_populates="payments")

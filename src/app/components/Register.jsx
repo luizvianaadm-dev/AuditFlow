@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Lock, Mail, User, Building2, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { register } from '../services/authService';
 
-const Register = ({ onNavigate }) => {
+const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     companyName: '',
     cnpj: '',
@@ -41,7 +43,7 @@ const Register = ({ onNavigate }) => {
       });
       // On success, redirect to login
       alert("Cadastro realizado com sucesso! Faça login para continuar.");
-      onNavigate('login');
+      navigate('/login');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -187,7 +189,7 @@ const Register = ({ onNavigate }) => {
           <p className="text-sm text-slate-600">
             Já possui cadastro?{' '}
             <button
-              onClick={() => onNavigate('login')}
+              onClick={() => navigate('/login')}
               className="font-medium text-primary hover:text-primary-light transition-colors focus:outline-none"
             >
               Fazer Login

@@ -77,7 +77,30 @@ export const runBenfordAnalysis = async (engagementId) => {
         headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Failed to run Benford analysis');
+    return response.json(); // Returns { task_id: ... }
+};
+
+export const getTaskStatus = async (taskId) => {
+    const response = await fetch(`${API_URL}/engagements/tasks/${taskId}`, {
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to check task status');
     return response.json();
+};
+
+export const pollTask = async (taskId, interval = 2000, timeout = 60000) => {
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeout) {
+        const status = await getTaskStatus(taskId);
+        if (status.status === 'SUCCESS') {
+            return status.result;
+        }
+        if (status.status === 'FAILURE' || status.status === 'REVOKED') {
+            throw new Error('Analysis failed');
+        }
+        await new Promise(resolve => setTimeout(resolve, interval));
+    }
+    throw new Error('Analysis timed out');
 };
 
 export const getAnalysisResults = async (engagementId) => {
@@ -88,8 +111,8 @@ export const getAnalysisResults = async (engagementId) => {
     return response.json();
 };
 
-export const downloadReport = async (engagementId, engagementName) => {
-    const response = await fetch(`${API_URL}/engagements/${engagementId}/report`, {
+export const downloadReport = async (engagementId, engagementName, format='pdf') => {
+    const response = await fetch(`${API_URL}/engagements/${engagementId}/report?format=${format}`, {
         headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Failed to download report');
@@ -99,7 +122,25 @@ export const downloadReport = async (engagementId, engagementName) => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Relatorio_${engagementName.replace(/\s/g, '_')}.pdf`;
+    a.download = `Relatorio_${engagementName.replace(/\s/g, '_')}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+};
+
+export const downloadExport = async (engagementId, type, format='xlsx') => {
+    // type: benford, duplicates, transactions, mistatements
+    const response = await fetch(`${API_URL}/engagements/${engagementId}/export/${type}?format=${format}`, {
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to download export');
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${type}_${engagementId}.${format}`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
@@ -296,5 +337,25 @@ export const getMistatementSummary = async (engagementId) => {
         headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Failed to fetch mistatement summary');
+    return response.json();
+};
+
+export const getPlans = async () => {
+    const response = await fetch(`${API_URL}/billing/plans`, { headers: getHeaders() });
+    return response.json();
+};
+
+export const getMySubscription = async () => {
+    const response = await fetch(`${API_URL}/billing/my-subscription`, { headers: getHeaders() });
+    return response.json();
+};
+
+export const subscribeToPlan = async (planId) => {
+    const response = await fetch(`${API_URL}/billing/subscribe`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ plan_id: planId }),
+    });
+    if (!response.ok) throw new Error('Failed to subscribe');
     return response.json();
 };

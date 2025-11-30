@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
+from datetime import datetime
 
 from src.api.database import get_db
 from src.api import models, schemas
@@ -36,8 +37,7 @@ def generate_workpapers(
     areas = db.query(models.AuditArea).filter(models.AuditArea.template_type == template).all()
 
     if not areas:
-        # Fallback to br_gaap if specific template empty? Or error?
-        # Let's assume seeded correctly. If empty, maybe try br_gaap as default.
+        # Fallback to br_gaap if specific template empty
         areas = db.query(models.AuditArea).filter(models.AuditArea.template_type == 'br_gaap').all()
 
     count = 0
@@ -154,8 +154,17 @@ def get_mistatement_summary(
     total_adjusted = sum(i.amount_divergence for i in items if i.status == 'adjusted')
     total_unadjusted = sum(i.amount_divergence for i in items if i.status == 'open' or i.status == 'unadjusted')
 
+    # Get Materiality if exists
+    materiality_result = db.query(models.AnalysisResult).filter(
+        models.AnalysisResult.engagement_id == engagement.id,
+        models.AnalysisResult.test_type == "materiality"
+    ).order_by(models.AnalysisResult.executed_at.desc()).first()
+
+    materiality = materiality_result.result if materiality_result else {}
+
     return {
         "items": items,
         "total_adjusted": total_adjusted,
-        "total_unadjusted": total_unadjusted
+        "total_unadjusted": total_unadjusted,
+        "materiality": materiality
     }

@@ -7,7 +7,7 @@ from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT
 import io
 from datetime import datetime
 
-def generate_audit_report(engagement, analysis_results):
+def generate_audit_report(engagement, analysis_results, mistatement_summary=None):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
@@ -135,6 +135,61 @@ def generate_audit_report(engagement, analysis_results):
                 story.append(Paragraph(f"Materialidade de Performance: R$ {res.get('performance_materiality', 0):,.2f}", styles['Normal']))
 
             story.append(Spacer(1, 0.3 * inch))
+
+    # 4. Summary of Mistatements (Sumário de Erros)
+    if mistatement_summary and mistatement_summary.get('items'):
+        story.append(Paragraph("Sumário de Erros Não Corrigidos", heading_style))
+        story.append(Paragraph("Abaixo listamos as divergências identificadas durante os trabalhos de auditoria:", styles['Normal']))
+        story.append(Spacer(1, 0.1 * inch))
+
+        items = mistatement_summary['items']
+        table_data = [['Descrição', 'Tipo', 'Status', 'Valor (R$)']]
+
+        for m in items:
+            status_text = "Ajustado" if m.status == 'adjusted' else "Não Ajustado"
+            table_data.append([
+                Paragraph(m.description, styles['Normal']),
+                m.type.capitalize(),
+                status_text,
+                f"{m.amount_divergence:,.2f}"
+            ])
+
+        t_errors = Table(table_data, colWidths=[3*inch, 1*inch, 1*inch, 1.5*inch])
+        t_errors.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#F8FAFC')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.HexColor('#003366')),
+            ('GRID', (0,0), (-1,-1), 1, colors.lightgrey),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ]))
+        story.append(t_errors)
+        story.append(Spacer(1, 0.2 * inch))
+
+        # Totals
+        story.append(Paragraph(f"<b>Total Ajustado: R$ {mistatement_summary['total_adjusted']:,.2f}</b>", styles['Normal']))
+        story.append(Paragraph(f"<b>Total Não Ajustado: R$ {mistatement_summary['total_unadjusted']:,.2f}</b>", styles['Normal']))
+
+        # Conclusion against Materiality
+        # Find materiality in analysis_results if available
+        materiality_val = 0
+        for res in analysis_results:
+            if res.test_type == 'materiality':
+                materiality_val = res.result.get('global_materiality', 0)
+                break
+
+        if materiality_val > 0:
+            story.append(Spacer(1, 0.1 * inch))
+            story.append(Paragraph(f"Materialidade Global: R$ {materiality_val:,.2f}", styles['Italic']))
+
+            if mistatement_summary['total_unadjusted'] > materiality_val:
+                conclusion = "<b>CONCLUSÃO:</b> O total de erros não ajustados excede a materialidade global. As demonstrações contábeis podem conter distorções relevantes."
+                color = colors.red
+            else:
+                conclusion = "<b>CONCLUSÃO:</b> O total de erros não ajustados é inferior à materialidade global. As distorções não são consideradas relevantes individualmente ou em conjunto."
+                color = colors.green
+
+            p = Paragraph(conclusion, styles['Normal'])
+            p.style.textColor = color
+            story.append(p)
 
     # Footer
     story.append(Spacer(1, 0.5 * inch))

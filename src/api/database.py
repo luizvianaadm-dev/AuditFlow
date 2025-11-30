@@ -3,13 +3,15 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# For development, we use SQLite.
-# In production, this would be replaced by PostgreSQL connection string.
-# Using /tmp to ensure write permissions in the sandbox environment if needed.
-SQLALCHEMY_DATABASE_URL = "sqlite:////tmp/auditflow.db"
+# Read from environment variable or fallback to SQLite
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////tmp/auditflow.db")
+
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    DATABASE_URL, connect_args=connect_args
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

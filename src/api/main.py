@@ -6,12 +6,23 @@ from src.scripts.benford_analysis import calculate_benford
 from src.scripts.duplicate_analysis import find_duplicates
 from src.api.database import engine, Base
 from src.api import models  # Import models to register them with Base
-from src.api.routes import clients, auth, register, engagements, analysis, mapping, planning, circularization, acceptance, team, sampling, payroll, workpapers
+from src.api.routes import clients, auth, register, engagements, analysis, mapping, planning, circularization, acceptance, team, sampling, payroll, workpapers, billing
+from src.api.logging_config import setup_logging
+from prometheus_fastapi_instrumentator import Instrumentator
+from contextlib import asynccontextmanager
 
 # Create tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="AuditFlow API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    setup_logging()
+    yield
+
+app = FastAPI(title="AuditFlow API", lifespan=lifespan)
+
+# Setup Prometheus Metrics
+Instrumentator().instrument(app).expose(app)
 
 # CORS Middleware (Allow React Frontend)
 app.add_middleware(
@@ -36,6 +47,7 @@ app.include_router(team.router)
 app.include_router(sampling.router)
 app.include_router(payroll.router)
 app.include_router(workpapers.router)
+app.include_router(billing.router)
 
 class TransactionList(BaseModel):
     values: List[float]

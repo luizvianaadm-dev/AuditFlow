@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Lock, Mail } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
-const Login = ({ onNavigate }) => {
+const Login = () => {
+  const navigate = useNavigate();
   const { login, loading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,7 +13,7 @@ const Login = ({ onNavigate }) => {
     e.preventDefault();
     const success = await login(email, password);
     if (success) {
-      onNavigate('dashboard');
+      navigate('/app');
     }
   };
 
@@ -107,7 +109,7 @@ const Login = ({ onNavigate }) => {
           <p className="text-sm text-slate-600">
             Não tem uma conta?{' '}
             <button
-              onClick={() => onNavigate('register')}
+              onClick={() => navigate('/register')}
               className="font-medium text-secondary hover:text-secondary-dark transition-colors focus:outline-none"
             >
               Cadastre sua empresa

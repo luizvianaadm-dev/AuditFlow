@@ -10,3 +10,10 @@ passlib[bcrypt]
 python-jose[cryptography]
 email-validator
 reportlab
+python-docx
+openpyxl
+psycopg2-binary
+celery
+redis
+prometheus-fastapi-instrumentator
+python-json-logger
