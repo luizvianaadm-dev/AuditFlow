@@ -10,14 +10,17 @@ if db_url and db_url.startswith("postgresql://"):
     # Railway PostgreSQL connection
     DATABASE_URL = db_url.replace("postgresql://", "postgresql+psycopg2://")
 else:
-    # Default to SQLite
-    DATABASE_URL = "sqlite:///./auditflow.db"connect_args = {}
+    # Default to SQLite - use /tmp for better persistence in containers
+    DATABASE_URL = "sqlite:////tmp/auditflow.db"
+
+connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
 engine = create_engine(
     DATABASE_URL, connect_args=connect_args
 )
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
