@@ -4,8 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # Read from environment variable or fallback to SQLite
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////tmp/auditflow.db")
-
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./auditflow.db")
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
