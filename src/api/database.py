@@ -4,8 +4,14 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # Read from environment variable or fallback to SQLite
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./auditflow.db")
-connect_args = {}
+# Handle PostgreSQL on Railway or SQLite locally
+db_url = os.getenv("DATABASE_URL")
+if db_url and db_url.startswith("postgresql://"):
+    # Railway PostgreSQL connection
+    DATABASE_URL = db_url.replace("postgresql://", "postgresql+psycopg2://")
+else:
+    # Default to SQLite
+    DATABASE_URL = "sqlite:///./auditflow.db"connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
