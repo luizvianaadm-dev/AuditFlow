@@ -1,7 +1,6 @@
-{
-  "buildCommand": "npm install && npm run build",
-"outputDirectory": "dist",
-  "framework": "vite",
+{  
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "env": {
     "VITE_API_URL": "https://auditflow-api.railway.app"
   },
