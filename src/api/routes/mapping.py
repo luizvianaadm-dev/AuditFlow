@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
-import pandas as pd
-import io
 
+from src.api.services.ingestion import TrialBalanceIngestion
 from src.api.database import get_db
 from src.api import models, schemas
 from src.api.deps import get_current_user
@@ -69,29 +68,17 @@ def analyze_trial_balance(
     current_user: models.User = Depends(get_current_user)
 ):
     """
-    Parses a Trial Balance CSV and returns a list of account descriptions
+    Parses a Trial Balance (CSV/Excel) and returns a list of account descriptions
     that are NOT yet mapped for this firm.
-    Expects CSV with column 'account_name' or 'description'.
     """
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="File must be a CSV")
-
     try:
-        content = file.file.read()
-        df = pd.read_csv(io.BytesIO(content))
+        df = TrialBalanceIngestion.read_file(file)
+        result = TrialBalanceIngestion.validate_and_parse(df)
 
-        # Identify account column
-        possible_cols = ['account_name', 'description', 'conta', 'descricao']
-        df.columns = [c.lower() for c in df.columns]
+        if not result["valid"]:
+             raise HTTPException(status_code=400, detail=f"Invalid file structure: {', '.join(result['errors'])}")
 
-        account_col = next((col for col in possible_cols if col in df.columns), None)
-
-        if not account_col:
-             raise HTTPException(status_code=400, detail=f"CSV must contain one of: {possible_cols}")
-
-        # Get unique accounts from CSV
-        unique_accounts = df[account_col].dropna().unique().tolist()
-        unique_accounts = [str(acc).strip() for acc in unique_accounts]
+        unique_accounts = result["unique_accounts"]
 
         # Get existing mappings for firm
         existing_mappings = db.query(models.AccountMapping.client_description).filter(
@@ -103,6 +90,8 @@ def analyze_trial_balance(
         unmapped = [acc for acc in unique_accounts if acc not in mapped_set]
         return unmapped
 
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error processing file: {str(e)}")
 
