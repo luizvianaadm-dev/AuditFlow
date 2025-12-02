@@ -17,3 +17,5 @@ celery
 redis
 prometheus-fastapi-instrumentator
 python-json-logger
+xlrd
+gunicorn
