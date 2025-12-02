@@ -1,0 +1,16 @@
+requirements.txt
+Procfile
+Dockerfile*
+docker-compose.yml
+railway.json
+alembic/
+alembic.ini
+src/api/
+src/scripts/
+tests/
+*.md
+.github/
+env/
+venv/
+*.db
+*.sqlite
