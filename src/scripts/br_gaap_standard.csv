@@ -1,0 +1,62 @@
+code,name,type,level
+1,ATIVO,Asset,1
+1.1,ATIVO CIRCULANTE,Asset,2
+1.1.01,Disponível,Asset,3
+1.1.01.01,Caixa,Asset,4
+1.1.01.02,Bancos Conta Movimento,Asset,4
+1.1.01.03,Aplicações Financeiras de Liquidez Imediata,Asset,4
+1.1.02,Contas a Receber de Clientes,Asset,3
+1.1.02.01,Clientes Nacionais,Asset,4
+1.1.02.02,Clientes Exterior,Asset,4
+1.1.03,Estoques,Asset,3
+1.1.03.01,Mercadorias para Revenda,Asset,4
+1.1.03.02,Matéria Prima,Asset,4
+1.1.04,Tributos a Recuperar,Asset,3
+1.1.05,Despesas Antecipadas,Asset,3
+1.2,ATIVO NÃO CIRCULANTE,Asset,2
+1.2.01,Realizável a Longo Prazo,Asset,3
+1.2.02,Investimentos,Asset,3
+1.2.03,Imobilizado,Asset,3
+1.2.03.01,Bens em Operação,Asset,4
+1.2.03.02,Depreciação Acumulada,Asset,4
+1.2.04,Intangível,Asset,3
+2,PASSIVO,Liability,1
+2.1,PASSIVO CIRCULANTE,Liability,2
+2.1.01,Fornecedores,Liability,3
+2.1.02,Obrigações Trabalhistas e Previdenciárias,Liability,3
+2.1.02.01,Salários a Pagar,Liability,4
+2.1.02.02,INSS a Recolher,Liability,4
+2.1.02.03,FGTS a Recolher,Liability,4
+2.1.03,Obrigações Tributárias,Liability,3
+2.1.03.01,ICMS a Recolher,Liability,4
+2.1.03.02,PIS a Recolher,Liability,4
+2.1.03.03,COFINS a Recolher,Liability,4
+2.1.03.04,IRPJ/CSLL a Pagar,Liability,4
+2.1.04,Empréstimos e Financiamentos CP,Liability,3
+2.2,PASSIVO NÃO CIRCULANTE,Liability,2
+2.2.01,Empréstimos e Financiamentos LP,Liability,3
+2.3,PATRIMÔNIO LÍQUIDO,Equity,2
+2.3.01,Capital Social,Equity,3
+2.3.02,Reservas de Capital,Equity,3
+2.3.03,Reservas de Lucros,Equity,3
+2.3.04,Prejuízos Acumulados,Equity,3
+3,RECEITAS,Revenue,1
+3.1,RECEITA OPERACIONAL BRUTA,Revenue,2
+3.1.01,Venda de Mercadorias,Revenue,3
+3.1.02,Prestação de Serviços,Revenue,3
+3.2,DEDUÇÕES DA RECEITA,Revenue,2
+3.2.01,Impostos s/ Vendas,Revenue,3
+3.2.02,Devoluções e Abatimentos,Revenue,3
+4,CUSTOS E DESPESAS OPERACIONAIS,Expense,1
+4.1,CUSTOS,Expense,2
+4.1.01,CMV - Custo Mercadoria Vendida,Expense,3
+4.1.02,CSP - Custo Serviço Prestado,Expense,3
+4.2,DESPESAS OPERACIONAIS,Expense,2
+4.2.01,Despesas com Pessoal,Expense,3
+4.2.02,Despesas Administrativas,Expense,3
+4.2.03,Despesas Tributárias,Expense,3
+4.2.04,Despesas Financeiras,Expense,3
+4.3,RECEITAS FINANCEIRAS,Revenue,2
+4.3.01,Rendimentos de Aplicação,Revenue,3
+4.3.02,Juros Ativos,Revenue,3
+5,APURAÇÃO DO RESULTADO,Equity,1
