@@ -3,6 +3,9 @@ uvicorn
 pandas
 numpy
 python-multipart
+httpx
+thefuzz
+python-levenshtein
 thefuzz
 python-levenshtein
 sqlalchemy

@@ -1,3 +1,17 @@
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Dict
+from src.api.routes import analytics
+
+app = FastAPI(
+    title="AuditFlow API",
+    description="API for AuditFlow Platform",
+    version="0.1.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For development, allow all. In prod, restrict to frontend domain.
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, List, Any, Optional
@@ -33,6 +47,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(analytics.router, prefix="/analyze", tags=["Analytics"])
 # Include Routers
 app.include_router(auth.router)
 app.include_router(register.router)
@@ -64,6 +79,7 @@ class TransactionInput(BaseModel):
 @app.get("/health")
 async def health_check() -> Dict[str, str]:
     """
+    Health check endpoint to verify the service status.
     Health check endpoint to verify service status.
     """
     return {"status": "ok", "service": "AuditFlow API"}
@@ -73,6 +89,7 @@ async def upload_file(file: UploadFile = File(...)) -> Dict[str, str]:
     """
     Dummy endpoint to handle file uploads.
     """
+    return {"filename": file.filename or "unknown", "status": "received"}
     if not file.filename:
         return {"message": "No filename provided"}
 
