@@ -11,16 +11,21 @@ const API_BASE_URL = 'http://localhost:8000'; // Or configure via ENV
 export async function analyzeBenford(transactions) {
   try {
     const response = await fetch(`${API_BASE_URL}/analyze/benford`, {
+export const analyzeBenford = async (values) => {
+  try {
+    const response = await fetch('http://localhost:8000/analyze/benford', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ transactions }),
+      body: JSON.stringify({ values }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.detail || 'Failed to analyze data');
+      throw new Error(errorData.detail || 'Erro ao realizar a análise');
     }
 
     return await response.json();
@@ -29,3 +34,7 @@ export async function analyzeBenford(transactions) {
     throw error;
   }
 }
+    console.error("Audit Service Error:", error);
+    throw error;
+  }
+};
