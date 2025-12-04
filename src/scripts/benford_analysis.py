@@ -74,8 +74,8 @@ def calculate_benford(values: list[float]) -> dict[str, dict[int, float] | list[
         "expected": expected,
         "observed": observed,
         "anomalies": anomalies
+                }
             
-from typing import List, Dict, Union, Any
 
 def calculate_benford(values: List[float]) -> Dict[str, Any]:
     """
