@@ -1,5 +1,28 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Dict
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Dict
+from src.api.routes import analytics
+
+app = FastAPI(
+    title="AuditFlow API",
+    description="API for AuditFlow Platform",
+    version="0.1.0",
+)
+
+origins = ["*"]  # for development, allow all. In prod, restrict to frontend domain.
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 from typing import Dict, List, Any, Optional
 from pydantic import BaseModel
 from src.scripts.benford_analysis import calculate_benford
@@ -7,6 +30,8 @@ from src.scripts.duplicate_analysis import find_duplicates
 from src.api.database import engine, Base
 from src.api import models
 from src.api.routes import clients, auth, register, engagements, analysis, mapping, planning, circularization, acceptance, team, sampling, payroll, workpapers, billing, analytics
+from src.api import models  # Import models to register them with Base
+from src.api.routes import clients, auth, register, engagements, analysis, mapping, planning, circularization, acceptance, team, sampling, payroll, workpapers, billing
 from src.api.logging_config import setup_logging
 from prometheus_fastapi_instrumentator import Instrumentator
 from contextlib import asynccontextmanager
@@ -35,6 +60,8 @@ app.add_middleware(
 
 # Include Routers
 app.include_router(analytics.router, prefix="/analyze", tags=["Analytics"])
+app.include_router(analytics.router, prefix="/analyze", tags=["Analytics"])
+# Include Routers
 app.include_router(auth.router)
 app.include_router(register.router)
 app.include_router(clients.router)
@@ -65,6 +92,7 @@ class TransactionInput(BaseModel):
 @app.get("/health")
 async def health_check() -> Dict[str, str]:
     """
+    Health check endpoint to verify the service status.
     Health check endpoint to verify service status.
     """
     return {"status": "ok", "service": "AuditFlow API"}
@@ -74,6 +102,7 @@ async def upload_file(file: UploadFile = File(...)) -> Dict[str, str]:
     """
     Dummy endpoint to handle file uploads.
     """
+    return {"filename": file.filename or "unknown", "status": "received"}
     if not file.filename:
         return {"message": "No filename provided"}
 
