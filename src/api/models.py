@@ -75,6 +75,7 @@ class Engagement(Base):
     team_members = relationship("EngagementTeam", back_populates="engagement")
     workpapers = relationship("WorkPaper", back_populates="engagement")
     mistatements = relationship("Mistatement", back_populates="engagement")
+        chart_mode = Column(String, default="standard")  # 'standard' or 'custom_client'
 
 class EngagementTeam(Base):
     __tablename__ = "engagement_teams"
@@ -121,6 +122,9 @@ class StandardAccount(Base):
     name = Column(String)
     type = Column(String)
     template_type = Column(String, default="br_gaap")
+        parent_id = Column(Integer, ForeignKey("standard_accounts.id"), nullable=True)  # For hierarchy
+    level = Column(Integer, default=1)  # Hierarchy level (1, 2, 3...)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)  # NULL = System standard, filled = Client custom
 
     mappings = relationship("AccountMapping", back_populates="standard_account")
 
@@ -130,6 +134,7 @@ class AccountMapping(Base):
     id = Column(Integer, primary_key=True, index=True)
     firm_id = Column(Integer, ForeignKey("audit_firms.id"))
     client_description = Column(String, index=True)
+        client_account_code = Column(String, unique=False, index=True)  # Code from client's chart for robust mapping
     standard_account_id = Column(Integer, ForeignKey("standard_accounts.id"))
 
     firm = relationship("AuditFirm", back_populates="account_mappings")
