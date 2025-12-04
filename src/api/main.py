@@ -27,7 +27,7 @@ from src.scripts.benford_analysis import calculate_benford
 from src.scripts.duplicate_analysis import find_duplicates
 from src.api.database import engine, Base
 from src.api import models  # Import models to register them with Base
-from src.api.routes import clients, auth, register, engagements, analysis, mapping, planning, circularization, acceptance, team, sampling, payroll, workpapers, billing
+from src.api.routes import clients, auth, register, engagements, analysis, mapping, planning, circularization, acceptance, team, sampling, payroll, workpapers, billing, financial_statements
 from src.api.logging_config import setup_logging
 from prometheus_fastapi_instrumentator import Instrumentator
 from contextlib import asynccontextmanager
@@ -70,6 +70,7 @@ app.include_router(sampling.router)
 app.include_router(payroll.router)
 app.include_router(workpapers.router)
 app.include_router(billing.router)
+app.include_router(financial_statements.router)
 
 class TransactionList(BaseModel):
     values: List[float]
