@@ -66,6 +66,7 @@ class Engagement(Base):
     name = Column(String)
     year = Column(Integer)
     service_type = Column(String, default="br_gaap")
+    chart_mode = Column(String, default="standard_auditflow") # standard_auditflow, client_custom
     client_id = Column(Integer, ForeignKey("clients.id"))
 
     client = relationship("Client", back_populates="engagements")
@@ -122,7 +123,14 @@ class StandardAccount(Base):
     type = Column(String)
     template_type = Column(String, default="br_gaap")
 
+    parent_id = Column(Integer, ForeignKey("standard_accounts.id"), nullable=True)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    level = Column(Integer, default=1)
+    is_active = Column(Boolean, default=True)
+
     mappings = relationship("AccountMapping", back_populates="standard_account")
+    parent = relationship("StandardAccount", remote_side=[id], backref="children")
+    client = relationship("Client")
 
 class AccountMapping(Base):
     __tablename__ = "account_mappings"
@@ -130,6 +138,7 @@ class AccountMapping(Base):
     id = Column(Integer, primary_key=True, index=True)
     firm_id = Column(Integer, ForeignKey("audit_firms.id"))
     client_description = Column(String, index=True)
+    client_account_code = Column(String, nullable=True, index=True)
     standard_account_id = Column(Integer, ForeignKey("standard_accounts.id"))
 
     firm = relationship("AuditFirm", back_populates="account_mappings")
