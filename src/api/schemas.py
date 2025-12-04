@@ -9,11 +9,12 @@ class EngagementBase(BaseModel):
     service_type: str = "br_gaap" # br_gaap, condo_audit, condo_ppa
 
 class EngagementCreate(EngagementBase):
-    pass
+    chart_mode: Optional[str] = "standard_auditflow"
 
 class EngagementRead(EngagementBase):
     id: int
     client_id: int
+    chart_mode: str = "standard_auditflow"
     transactions: List['TransactionRead'] = []
 
     class Config:
@@ -114,6 +115,9 @@ class StandardAccountBase(BaseModel):
     name: str
     type: str
     template_type: str
+    level: int = 1
+    parent_id: Optional[int] = None
+    client_id: Optional[int] = None
 
 class StandardAccountCreate(StandardAccountBase):
     pass
@@ -125,6 +129,7 @@ class StandardAccountRead(StandardAccountBase):
 
 class AccountMappingBase(BaseModel):
     client_description: str
+    client_account_code: Optional[str] = None
     standard_account_id: int
 
 class AccountMappingCreate(AccountMappingBase):
