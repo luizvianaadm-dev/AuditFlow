@@ -69,6 +69,11 @@ def calculate_benford(values: list[float]) -> dict[str, dict[int, float] | list[
         diff = abs(observed[d] - expected[d])
         if diff > 0.05:
             anomalies.append(d)
+
+    return {
+        "expected": expected,
+        "observed": observed,
+        "anomalies": anomalies
             
 from typing import List, Dict, Union, Any
 
