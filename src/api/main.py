@@ -1,19 +1,26 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Dict
 from src.api.routes import analytics
 
 app = FastAPI(
     title="AuditFlow API",
     description="API for AuditFlow Platform",
-    version="0.1.0"
+    version="0.1.0",
 )
+
+origins = ["*"]  # for development, allow all. In prod, restrict to frontend domain.
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development, allow all. In prod, restrict to frontend domain.
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 from typing import Dict, List, Any, Optional
 from pydantic import BaseModel
 from src.scripts.benford_analysis import calculate_benford
