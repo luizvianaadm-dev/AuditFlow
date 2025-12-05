@@ -68,18 +68,17 @@ def setup_data():
         chart_mode="standard_auditflow" # Default
     )
     db.add(engagement)
-    db.flush()
-    eng_id = engagement.id
+    db.commit()
 
     # Create Transactions (Simulate Upload)
-    t1 = models.Transaction(engagement_id=eng_id, account_code="1001", account_name="Caixa", amount=100.0)
-    t2 = models.Transaction(engagement_id=eng_id, account_code="2001", account_name="Fornecedores", amount=-50.0)
+    t1 = models.Transaction(engagement_id=engagement.id, account_code="1001", account_name="Caixa", amount=100.0)
+    t2 = models.Transaction(engagement_id=engagement.id, account_code="2001", account_name="Fornecedores", amount=-50.0)
     db.add(t1)
     db.add(t2)
     db.commit()
 
     db.close()
-    return eng_id
+    return engagement.id
 
 def test_verify_mapping_flow():
     engagement_id = setup_data()
