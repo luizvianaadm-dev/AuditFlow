@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Save, Check, FileText, Calendar, Info, BookOpen, Upload, PieChart, FileCheck, Download } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, Check, FileText, Calendar, Info, BookOpen, Upload, PieChart, FileCheck } from 'lucide-react';
 import { getFSContext, updateFSContext, generateFS } from '../../services/fsService';
-import { exportToPDF, exportToExcel, exportToWord } from '../../utils/fsExporter';
 
 const FSWizard = ({ engagementId, onBack }) => {
   const [step, setStep] = useState(1);
@@ -289,68 +288,33 @@ const FSWizard = ({ engagementId, onBack }) => {
 
       const { balance_sheet, income_statement, notes, validations } = reportData;
 
-      const companyName = contextData.bloco_1_identificacao?.razao_social?.replace(/ /g, '_') || "Empresa";
-      const fileName = `DF_${companyName}_${new Date().toISOString().split('T')[0]}`;
-
       return (
           <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-slate-800 flex items-center">
-                      <Check className="w-6 h-6 text-green-500 mr-2" />
-                      Demonstrações Geradas
-                  </h3>
-                  <div className="flex space-x-2">
-                      <button
-                        onClick={() => exportToPDF('fs-report-content', fileName + '.pdf')}
-                        className="flex items-center px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                      >
-                          <Download className="w-4 h-4 mr-1" /> PDF
-                      </button>
-                      <button
-                        onClick={() => exportToExcel(reportData, fileName + '.xlsx')}
-                        className="flex items-center px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700"
-                      >
-                          <Download className="w-4 h-4 mr-1" /> Excel
-                      </button>
-                      <button
-                        onClick={() => exportToWord(reportData, contextData, fileName + '.docx')}
-                        className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                      >
-                          <Download className="w-4 h-4 mr-1" /> Word
-                      </button>
-                  </div>
-              </div>
+              <h3 className="text-xl font-bold text-slate-800 flex items-center">
+                  <Check className="w-6 h-6 text-green-500 mr-2" />
+                  Demonstrações Geradas
+              </h3>
 
-              <div id="fs-report-content" className="bg-white border rounded-lg shadow-sm p-4">
-                  <div className="text-center mb-6 border-b pb-4">
-                      <h2 className="text-2xl font-bold uppercase">{contextData.bloco_1_identificacao?.razao_social || 'Entidade'}</h2>
-                      <p className="text-slate-500">
-                          CNPJ: {contextData.bloco_1_identificacao?.cnpj}
-                      </p>
-                      <p className="text-slate-500 font-medium mt-1">
-                          Demonstrações Financeiras - {contextData.bloco_2_periodo_contabil?.data_encerramento_exercicio}
-                      </p>
-                  </div>
-
-                  <div className="border-b p-4 bg-slate-50 flex justify-between items-center mb-6">
+              <div className="bg-white border rounded-lg shadow-sm">
                   <div className="border-b p-4 bg-slate-50 flex justify-between items-center">
                       <h4 className="font-bold text-slate-700">Validações</h4>
                       <span className={`px-2 py-1 rounded text-xs font-bold ${validations.all_checks_passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                           {validations.all_checks_passed ? 'APROVADO' : 'ATENÇÃO'}
                       </span>
                   </div>
-                  <div className="p-4 grid grid-cols-2 gap-4 text-sm mb-6">
+                  <div className="p-4 grid grid-cols-2 gap-4 text-sm">
                       <div className="flex justify-between">
                           <span>Equação Patrimonial (A = P + PL):</span>
-                          <span className={`font-bold ${validations.accounting_equation ? 'text-green-600' : 'text-red-600'}`}>{validations.accounting_equation ? 'OK' : 'Erro'}</span>
+                          <span>{validations.accounting_equation ? 'OK' : 'Erro'}</span>
                       </div>
                       <div className="flex justify-between">
                           <span>Conciliação DRE vs DMPL:</span>
-                          <span className={`font-bold ${validations.dre_dmpl_reconciliation ? 'text-green-600' : 'text-red-600'}`}>{validations.dre_dmpl_reconciliation ? 'OK' : 'Erro'}</span>
+                          <span>{validations.dre_dmpl_reconciliation ? 'OK' : 'Erro'}</span>
                       </div>
                   </div>
+              </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* BP */}
                   <div className="border rounded-lg p-4">
                       <h4 className="font-bold text-center border-b pb-2 mb-4 bg-slate-100 -mx-4 -mt-4 p-3 rounded-t-lg">Balanço Patrimonial</h4>
@@ -379,16 +343,14 @@ const FSWizard = ({ engagementId, onBack }) => {
               </div>
 
               {/* Notes */}
-              <div className="border rounded-lg p-4 bg-slate-50 page-break-inside-avoid">
-                  <h4 className="font-bold mb-2 text-lg border-b pb-2">Notas Explicativas</h4>
-                  <div className="space-y-6 text-sm text-slate-700 text-justify">
-                      <div><h5 className="font-bold mb-1">Nota 1 - Contexto</h5> <p>{notes.nota_1}</p></div>
-                      <div><h5 className="font-bold mb-1">Nota 2 - Base de Preparação</h5> <p>{notes.nota_2}</p></div>
-                      <div><h5 className="font-bold mb-1">Nota 3 - Práticas Contábeis</h5> <p>{notes.nota_3}</p></div>
+              <div className="border rounded-lg p-4 bg-slate-50">
+                  <h4 className="font-bold mb-2">Notas Explicativas (Prévia)</h4>
+                  <div className="space-y-4 text-sm text-slate-700">
+                      <div><span className="font-bold">Nota 1:</span> {notes.nota_1}</div>
+                      <div><span className="font-bold">Nota 2:</span> {notes.nota_2}</div>
+                      <div><span className="font-bold">Nota 3:</span> {notes.nota_3}</div>
                   </div>
               </div>
-
-              </div> {/* End of printable area */}
           </div>
       );
   };
