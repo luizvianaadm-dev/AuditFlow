@@ -143,7 +143,6 @@ class StandardAccount(Base):
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)  # NULL = System standard, filled = Client custom
 
     is_active = Column(Boolean, default=True)
-    
     mappings = relationship(
         "AccountMapping", back_populates="standard_account")
     parent = relationship("StandardAccount", remote_side=[
