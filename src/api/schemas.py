@@ -220,3 +220,13 @@ class FirmRegister(BaseModel):
     cnpj: str
     email: EmailStr
     password: str
+
+# --- Financial Statements Schemas ---
+class CashFlowItem(BaseModel):
+    description: str
+    value: float
+
+class CashFlowInput(BaseModel):
+    operating_adjustments: List[CashFlowItem] = []
+    investment_activities: List[CashFlowItem] = []
+    financing_activities: List[CashFlowItem] = []
