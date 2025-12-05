@@ -76,7 +76,7 @@ class Engagement(Base):
     team_members = relationship("EngagementTeam", back_populates="engagement")
     workpapers = relationship("WorkPaper", back_populates="engagement")
     mistatements = relationship("Mistatement", back_populates="engagement")
-            chart_mode = Column(String, default="standard")  # 'standard' or 'custom_client'
+                chart_mode = Column(String, default="standard")  # 'standard' or 'custom_client'
 
 class EngagementTeam(Base):
     __tablename__ = "engagement_teams"
