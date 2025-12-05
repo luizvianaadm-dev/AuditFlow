@@ -73,8 +73,7 @@ class Engagement(Base):
     name = Column(String)
     year = Column(Integer)
     service_type = Column(String, default="br_gaap")
-    # standard_auditflow, client_custom
-    chart_mode = Column(String, default="standard_auditflow")
+    chart_mode = Column(String, default="standard_auditflow") # standard_auditflow, client_custom
     client_id = Column(Integer, ForeignKey("clients.id"))
 
     client = relationship("Client", back_populates="engagements")
@@ -139,6 +138,47 @@ class StandardAccount(Base):
     name = Column(String)
     type = Column(String)
     template_type = Column(String, default="br_gaap")
+        parent_id = Column(Integer, ForeignKey("standard_accounts.id"), nullable=True)  # For hierarchy
+    level = Column(Integer, default=1)  # Hierarchy level (1, 2, 3...)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)  # NULL = System standard, filled = Client custom
+
+    is_active = Column(Boolean, default=True)
+
+    parent_id = Column(Integer, ForeignKey(
+        "standard_accounts.id"), nullable=True)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    level = Column(Integer, default=1)
+    is_active = Column(Boolean, default=True)
+
+    mappings = relationship(
+        "AccountMapping", back_populates="standard_account")
+    parent = relationship("StandardAccount", remote_side=[
+                          id], backref="children")
+    client = relationship("Client")
+
+    parent_id = Column(Integer, ForeignKey(
+        "standard_accounts.id"), nullable=True)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    level = Column(Integer, default=1)
+    is_active = Column(Boolean, default=True)
+
+    mappings = relationship(
+        "AccountMapping", back_populates="standard_account")
+    parent = relationship("StandardAccount", remote_side=[
+                          id], backref="children")
+    client = relationship("Client")
+
+    parent_id = Column(Integer, ForeignKey(
+        "standard_accounts.id"), nullable=True)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    level = Column(Integer, default=1)
+    is_active = Column(Boolean, default=True)
+
+    mappings = relationship(
+        "AccountMapping", back_populates="standard_account")
+    parent = relationship("StandardAccount", remote_side=[
+                          id], backref="children")
+    client = relationship("Client")
 
     parent_id = Column(Integer, ForeignKey(
         "standard_accounts.id"), nullable=True)
