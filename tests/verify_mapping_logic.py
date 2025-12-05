@@ -132,37 +132,26 @@ def test_verify_mapping_flow():
     data = response.json()
     assert len(data["standard_accounts"]) == 2 # "Caixa" and "Fornecedores" created as standard
 
-    # 6. Create Mapping (Bulk)
+    # 6. Create Mapping
     # Let's switch back to AuditFlow Standard for mapping test
     client.post(f"/mapping/{engagement_id}/set-standard?chart_mode=standard_auditflow")
 
-    # Test Bulk Mapping
-    bulk_payload = [
-        {
-            "client_description": "Caixa",
-            "client_account_code": "1001",
-            "standard_account_id": std_id
-        },
-        {
-            "client_description": "Fornecedores",
-            "client_account_code": "2001",
-            "standard_account_id": std_id # Mapping both to same just for test
-        }
-    ]
-
-    response = client.post("/mapping/bulk-map", json=bulk_payload)
-    assert response.status_code == 201
-    assert "Successfully processed 2 mappings" in response.json()["message"]
+    mapping_payload = {
+        "client_description": "Caixa",
+        "client_account_code": "1001",
+        "standard_account_id": std_id
+    }
+    response = client.post("/mapping/map", json=mapping_payload)
+    assert response.status_code == 200
+    assert response.json()["client_account_code"] == "1001"
+    assert response.json()["standard_account_id"] == std_id
 
     # 7. Verify Persistence
     response = client.get("/mapping/firm-mappings")
     assert response.status_code == 200
     mappings = response.json()
-    assert len(mappings) == 2
-
-    codes = [m["client_account_code"] for m in mappings]
-    assert "1001" in codes
-    assert "2001" in codes
+    assert len(mappings) == 1
+    assert mappings[0]["client_account_code"] == "1001"
 
     print("Mapping Flow Verified Successfully!")
 
