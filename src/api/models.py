@@ -143,66 +143,13 @@ class StandardAccount(Base):
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)  # NULL = System standard, filled = Client custom
 
     is_active = Column(Boolean, default=True)
-
-    parent_id = Column(Integer, ForeignKey(
-        "standard_accounts.id"), nullable=True)
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
-    level = Column(Integer, default=1)
-    is_active = Column(Boolean, default=True)
-
+    
     mappings = relationship(
         "AccountMapping", back_populates="standard_account")
     parent = relationship("StandardAccount", remote_side=[
-                          id], backref="children")
+        id], backref="children")
     client = relationship("Client")
 
-    parent_id = Column(Integer, ForeignKey(
-        "standard_accounts.id"), nullable=True)
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
-    level = Column(Integer, default=1)
-    is_active = Column(Boolean, default=True)
-
-    mappings = relationship(
-        "AccountMapping", back_populates="standard_account")
-    parent = relationship("StandardAccount", remote_side=[
-                          id], backref="children")
-    client = relationship("Client")
-
-    parent_id = Column(Integer, ForeignKey(
-        "standard_accounts.id"), nullable=True)
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
-    level = Column(Integer, default=1)
-    is_active = Column(Boolean, default=True)
-
-    mappings = relationship(
-        "AccountMapping", back_populates="standard_account")
-    parent = relationship("StandardAccount", remote_side=[
-                          id], backref="children")
-    client = relationship("Client")
-
-    parent_id = Column(Integer, ForeignKey(
-        "standard_accounts.id"), nullable=True)
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
-    level = Column(Integer, default=1)
-    is_active = Column(Boolean, default=True)
-
-    mappings = relationship(
-        "AccountMapping", back_populates="standard_account")
-    parent = relationship("StandardAccount", remote_side=[
-                          id], backref="children")
-    client = relationship("Client")
-
-    parent_id = Column(Integer, ForeignKey(
-        "standard_accounts.id"), nullable=True)
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
-    level = Column(Integer, default=1)
-    is_active = Column(Boolean, default=True)
-
-    mappings = relationship(
-        "AccountMapping", back_populates="standard_account")
-    parent = relationship("StandardAccount", remote_side=[
-                          id], backref="children")
-    client = relationship("Client")
 
 
 class AccountMapping(Base):
