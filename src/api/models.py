@@ -132,23 +132,18 @@ class AnalysisResult(Base):
 
 class StandardAccount(Base):
     __tablename__ = "standard_accounts"
-
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String, index=True)
     name = Column(String)
     type = Column(String)
     template_type = Column(String, default="br_gaap")
-        parent_id = Column(Integer, ForeignKey("standard_accounts.id"), nullable=True)  # For hierarchy
-    level = Column(Integer, default=1)  # Hierarchy level (1, 2, 3...)
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)  # NULL = System standard, filled = Client custom
-
+    parent_id = Column(Integer, ForeignKey("standard_accounts.id"), nullable=True)
+    level = Column(Integer, default=1)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
     is_active = Column(Boolean, default=True)
-    mappings = relationship(
-        "AccountMapping", back_populates="standard_account")
-    parent = relationship("StandardAccount", remote_side=[
-        id], backref="children")
+    mappings = relationship("AccountMapping", back_populates="standard_account")
+    parent = relationship("StandardAccount", remote_side=[id], backref="children")
     client = relationship("Client")
-
 
 
 class AccountMapping(Base):
