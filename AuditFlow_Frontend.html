@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuditFlow - Reconciliation Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 p-10">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md">
+        <h1 class="text-2xl font-bold text-slate-800 mb-6">AuditFlow Reconciliation Module</h1>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Bank Statement (CSV/Excel)</label>
+                <input type="file" id="bankFile" class="mt-1 block w-full text-sm text-slate-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100
+                "/>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Financial Records (CSV/Excel)</label>
+                <input type="file" id="finFile" class="mt-1 block w-full text-sm text-slate-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100
+                "/>
+            </div>
+
+            <button onclick="uploadFiles()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                Start Reconciliation
+            </button>
+        </div>
+
+        <div id="result" class="mt-6 p-4 bg-slate-100 rounded-lg hidden">
+            <h3 class="font-semibold text-slate-800">Status:</h3>
+            <pre id="output" class="text-sm text-slate-600 whitespace-pre-wrap"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function uploadFiles() {
+            const bank = document.getElementById('bankFile').files[0];
+            const fin = document.getElementById('finFile').files[0];
+            const output = document.getElementById('output');
+            const resultDiv = document.getElementById('result');
+
+            if (!bank || !fin) {
+                alert("Please select both files.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('bank_file', bank);
+            formData.append('financial_file', fin);
+
+            resultDiv.classList.remove('hidden');
+            output.textContent = "Uploading and processing...";
+
+            try {
+                const response = await fetch('http://localhost:8000/analyze/reconciliation', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                output.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                output.textContent = "Error: " + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
