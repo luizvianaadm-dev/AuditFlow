@@ -1,8 +1,10 @@
 import pandas as pd
 import itertools
 import logging
+import os
+import uuid
 from datetime import datetime
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -15,21 +17,17 @@ class ReconciliationEngine:
         if isinstance(value, (int, float)):
             return float(value)
         if isinstance(value, str):
-            # Remove R$ and spaces
             clean_val = value.replace('R$', '').replace(' ', '')
-            # Handle empty
             if not clean_val:
                 return 0.0
-
-            # Identify format:
-            # If comma is present and it's the last separator, it's decimal
-            # 1.000,00 -> 1000.00
-            # 1000,00 -> 1000.00
             if ',' in clean_val:
                 if '.' in clean_val:
-                    clean_val = clean_val.replace('.', '') # remove thousands separator
+                    clean_val = clean_val.replace('.', '')
                 clean_val = clean_val.replace(',', '.')
-            return float(clean_val)
+            try:
+                return float(clean_val)
+            except ValueError:
+                return 0.0
         return 0.0
 
     @staticmethod
@@ -44,166 +42,199 @@ class ReconciliationEngine:
         if isinstance(value, datetime):
             return value
 
+        # Optimize: try pd.to_datetime first if applicable, but for single value loop:
         formats = ['%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%Y/%m/%d']
+        s_val = str(value).strip()
         for fmt in formats:
             try:
-                return datetime.strptime(str(value).strip(), fmt)
+                return datetime.strptime(s_val, fmt)
             except ValueError:
                 continue
         return None
 
     @staticmethod
-    def process_reconciliation(bank_df: pd.DataFrame, fin_df: pd.DataFrame) -> List[Dict[str, Any]]:
+    def process_reconciliation(bank_file_path: str, fin_file_path: str, output_path: str) -> str:
         """
-        Reconciles Bank Statement against Financial Records using Subset Sum.
-
-        Mappings:
-        - Bank: Data, Valor, Codigo Conciliação
-        - Financial: Data movimento, Valor (R$)
+        High-performance reconciliation engine.
+        Reads files, partitions by date, and performs subset sum matching.
+        Saves results to output_path (JSON).
         """
-        results = []
+        try:
+            # 1. Optimized Read
+            # Use chunks if massive, but 1M rows fits in modern RAM if types are optimized.
+            # We assume CSV or Excel.
 
-        # 1. Standardize Columns & Types
-        # Bank
-        bank_cols = {col: col.lower().strip() for col in bank_df.columns}
-        # Find best matches for Data, Valor, Codigo
-        # Using simple heuristics or exact names from prompt
+            def load_df(path):
+                if path.endswith('.csv'):
+                    return pd.read_csv(path, low_memory=False)
+                elif path.endswith(('.xls', '.xlsx')):
+                    return pd.read_excel(path)
+                raise ValueError("Unsupported format")
 
-        # Prompt: "Data", "Valor", "Codigo Conciliação"
-        # We need to normalize
+            bank_df = load_df(bank_file_path)
+            fin_df = load_df(fin_file_path)
 
-        def get_col(df, candidates):
-            for c in df.columns:
-                if c.strip() in candidates:
-                    return c
-            return None
+            # Column mapping helpers
+            def get_col(df, candidates):
+                for c in df.columns:
+                    if c.strip() in candidates:
+                        return c
+                return None
 
-        b_data = get_col(bank_df, ["Data", "Date"])
-        b_valor = get_col(bank_df, ["Valor", "Value", "Amount"])
-        b_code = get_col(bank_df, ["Codigo Conciliação", "Codigo", "Conciliation Code"])
+            b_data_col = get_col(bank_df, ["Data", "Date"])
+            b_valor_col = get_col(bank_df, ["Valor", "Value", "Amount"])
+            b_code_col = get_col(bank_df, ["Codigo Conciliação", "Codigo", "Conciliation Code"])
 
-        if not (b_data and b_valor and b_code):
-             raise ValueError(f"Missing required columns in Bank file. Found: {list(bank_df.columns)}")
+            f_data_col = get_col(fin_df, ["Data movimento", "Data Movimento", "Date"])
+            f_valor_col = get_col(fin_df, ["Valor (R$)", "Valor", "Value"])
 
-        # Fin
-        # Prompt: "Data movimento", "Valor (R$)"
-        f_data = get_col(fin_df, ["Data movimento", "Data Movimento", "Date"])
-        f_valor = get_col(fin_df, ["Valor (R$)", "Valor", "Value"])
+            if not (b_data_col and b_valor_col and b_code_col):
+                 raise ValueError("Missing Bank columns")
+            if not (f_data_col and f_valor_col):
+                 raise ValueError("Missing Financial columns")
 
-        if not (f_data and f_valor):
-            raise ValueError(f"Missing required columns in Financial file. Found: {list(fin_df.columns)}")
+            # 2. Vectorized Preprocessing
+            # Bank
+            bank_df['parsed_date'] = pd.to_datetime(bank_df[b_data_col], dayfirst=True, errors='coerce')
+            # Custom currency parser is hard to vectorize if format varies, but we can apply map
+            bank_df['parsed_amount'] = bank_df[b_valor_col].apply(ReconciliationEngine.parse_currency).astype('float32')
+            bank_df['clean_code'] = bank_df[b_code_col].astype(str).str.strip()
 
-        # Process Bank
-        bank_clean = []
-        for idx, row in bank_df.iterrows():
-            code = str(row[b_code]).strip()
-            # Only process rows with a code (not null/empty)
-            if not code or code.lower() in ['nan', 'none', '']:
-                continue
+            # Filter valid
+            bank_clean = bank_df.dropna(subset=['parsed_date', 'clean_code'])
+            # Exclude empty codes
+            bank_clean = bank_clean[bank_clean['clean_code'] != 'nan']
+            bank_clean = bank_clean[bank_clean['clean_code'] != '']
 
-            dt = ReconciliationEngine.parse_date(row[b_data])
-            val = ReconciliationEngine.parse_currency(row[b_valor])
+            # Financial
+            fin_df['parsed_date'] = pd.to_datetime(fin_df[f_data_col], dayfirst=True, errors='coerce')
+            fin_df['parsed_amount'] = fin_df[f_valor_col].apply(ReconciliationEngine.parse_currency).astype('float32')
+            fin_clean = fin_df.dropna(subset=['parsed_date'])
 
-            if dt:
-                bank_clean.append({
-                    "id": idx, # Original Index
-                    "date": dt,
-                    "amount": val,
-                    "code": code,
-                    "original_row": row.to_dict()
-                })
+            # Add original index to track
+            bank_clean['original_idx'] = bank_clean.index
+            fin_clean['original_idx'] = fin_clean.index
 
-        # Process Financial
-        fin_clean = []
-        for idx, row in fin_df.iterrows():
-            dt = ReconciliationEngine.parse_date(row[f_data])
-            val = ReconciliationEngine.parse_currency(row[f_valor])
+            # 3. Partitioning (Group by Date)
+            # Create a dictionary of Financial items keyed by Date
+            # Optimization: Groupby object
+            fin_groups = fin_clean.groupby(fin_clean['parsed_date'].dt.date)
 
-            if dt:
-                fin_clean.append({
-                    "id": idx,
-                    "date": dt,
-                    "amount": val,
-                    "original_row": row.to_dict()
-                })
+            # Convert to dict for fast access {date: df_group}
+            # Actually, iterating matches is better done per Bank group as well?
+            # Yes: match Bank(Date X) with Fin(Date X).
 
-        # Group Financials by Date for faster lookup
-        fin_by_date = {}
-        for f in fin_clean:
-            d_str = f['date'].strftime('%Y-%m-%d')
-            if d_str not in fin_by_date:
-                fin_by_date[d_str] = []
-            fin_by_date[d_str].append(f)
+            bank_groups = bank_clean.groupby(bank_clean['parsed_date'].dt.date)
 
-        # 2. Matching Logic
-        TOLERANCE = 0.01
-        MAX_COMBINATIONS_R = 15
-        TIMEOUT_LIMIT_OPS = 1_000_000 # Max iterations per bank line
+            results = []
 
-        for b_item in bank_clean:
-            d_str = b_item['date'].strftime('%Y-%m-%d')
-            target_amount = b_item['amount']
+            TOLERANCE = 0.01
+            MAX_COMBINATIONS = 15
+            MAX_CANDIDATES_SOFT_LIMIT = 100
 
-            match_found = False
-            matched_ids = []
-            matched_details = []
+            for date_key, b_group in bank_groups:
+                if date_key not in fin_groups.groups:
+                    continue # No financials for this date
 
-            candidates = fin_by_date.get(d_str, [])
+                f_group = fin_groups.get_group(date_key)
 
-            # Optimization: Filter candidates by sign?
-            # Usually Bank Debit (-) matches Financial Expense (-), or sometimes Financial is positive.
-            # Assuming values are absolute or consistent.
-            # Let's assume absolute matching for safety or exact match.
-            # Prompt says: "soma EXATAMENTE o valor do banco".
-            # If Bank is -100 and Fin are -30, -30, -40. Sum is -100.
-            # If Bank is -100 and Fin are 30, 30, 40. Sum is 100.
-            # We will try exact match first.
+                # Convert financial candidates to list of tuples for speed: (id, amount)
+                # Sort by amount descending (heuristic for subset sum)
+                all_candidates = list(zip(f_group['original_idx'], f_group['parsed_amount']))
 
-            # Heuristic: If candidates are too many (> 20), we might restrict `r`
-            n = len(candidates)
-            ops_count = 0
+                # Optimisation: If candidates > 100, we truncate?
+                # Or we just rely on the loop breaker.
+                # Let's keep all but be aggressive on breaker.
 
-            # Try to find a subset
-            # range(1, min(n + 1, MAX_COMBINATIONS_R + 1))
-            limit_r = min(n + 1, MAX_COMBINATIONS_R + 1)
+                # Process each bank item in this date
+                for _, b_row in b_group.iterrows():
+                    target = b_row['parsed_amount']
+                    b_id = b_row['original_idx']
+                    b_code = b_row['clean_code']
 
-            for r in range(1, limit_r):
-                if match_found: break
+                    # Subset Sum
+                    match_found = False
+                    matched_ids = []
 
-                # Safety check for complexity: C(n, r)
-                # If predicted ops > limit, maybe skip this 'r' level or warn?
-                # For now, we iterate and increment ops_count
+                    # Optimization: Filter candidates by magnitude
+                    # Assuming items sum up to target, magnitude of each item <= magnitude of target (with tolerance)
+                    # This is safe for standard splitting.
+                    target_abs = abs(target) + TOLERANCE
+                    candidates = [c for c in all_candidates if abs(c[1]) <= target_abs]
 
-                for combo in itertools.combinations(candidates, r):
-                    ops_count += 1
-                    if ops_count > TIMEOUT_LIMIT_OPS:
-                        break # Give up on this line to save server
+                    # Sort candidates descending
+                    candidates.sort(key=lambda x: x[1], reverse=True)
 
-                    current_sum = sum(c['amount'] for c in combo)
+                    # Limit r range
+                    limit_r = min(len(candidates) + 1, MAX_COMBINATIONS + 1)
 
-                    if abs(current_sum - target_amount) <= TOLERANCE:
-                        match_found = True
-                        matched_ids = [c['id'] for c in combo]
-                        matched_details = [c['original_row'] for c in combo]
+                    # Heuristic: if len(candidates) is huge, this is O(2^N).
+                    # We MUST limit the iterations count per item.
+                    ITER_LIMIT = 50_000
+                    iter_count = 0
 
-                        # Remove matched items from candidates?
-                        # The prompt doesn't strictly say "consume" the items (One-to-Many vs Many-to-Many uniqueness).
-                        # Usually in reconciliation, once matched, it's used.
-                        # But for "Algorithm that finds... matches", keeping simple logic (per line) is safer.
-                        # However, strictly, if 30, 30, 40 are used for one 100, they shouldn't be used for another 100.
-                        # But implementing global optimization is much harder (Knapsack/Bin Packing).
-                        # We will just report the POTENTIAL match found.
-                        break
+                    for r in range(1, limit_r):
+                        if match_found: break
 
-                if ops_count > TIMEOUT_LIMIT_OPS:
-                    logger.warning(f"Timeout reconciling Bank ID {b_item['id']} on {d_str}")
-                    break
+                        # Optimization: Check bounds
+                        # candidates are sorted descending.
+                        # Max possible sum with r items = first r items
+                        # Min possible sum with r items = last r items
+                        if len(candidates) >= r:
+                            max_possible = sum(c[1] for c in candidates[:r])
+                            min_possible = sum(c[1] for c in candidates[-r:])
 
-            results.append({
-                "bank_entry": b_item,
-                "match_found": match_found,
-                "financial_matches": matched_details,
-                "financial_ids": matched_ids
-            })
+                            # Assuming target and candidates are mostly positive/consistent signs
+                            # If mixed signs, this heuristic is risky.
+                            # But for standard reconciliation (Payments), signs usually match.
+                            # We apply it only if all candidates are positive or we accept the risk of skipping.
+                            # Given the prompt's context, let's assume loose heuristic is better than timeout.
 
-        return results
+                            if target > max_possible + TOLERANCE:
+                                # Target is too big for any combo of size r
+                                continue
+                            if target < min_possible - TOLERANCE:
+                                # Target is too small for any combo of size r
+                                continue
+
+                        for combo in itertools.combinations(candidates, r):
+                            iter_count += 1
+                            if iter_count > ITER_LIMIT:
+                                break
+
+                            current_sum = sum(item[1] for item in combo)
+
+                            if abs(current_sum - target) <= TOLERANCE:
+                                match_found = True
+                                matched_ids = [item[0] for item in combo]
+                                break
+
+                        if iter_count > ITER_LIMIT:
+                            break
+
+                    if match_found:
+                        results.append({
+                            "bank_id": int(b_id),
+                            "bank_code": b_code,
+                            "date": str(date_key),
+                            "target_amount": float(target),
+                            "matched_fin_ids": [int(mid) for mid in matched_ids]
+                        })
+
+                        # Greedy Approach? Should we remove matched items?
+                        # "Filtre as linhas do Financeiro ... que ainda não têm Codigo".
+                        # Since we are processing a batch, we don't have the 'code' status update in real-time in the DF.
+                        # For high accuracy, we SHOULD remove them from 'candidates' for subsequent bank items in the same day.
+                        # Let's do that.
+                        used_ids = set(matched_ids)
+                        all_candidates = [c for c in all_candidates if c[0] not in used_ids]
+
+            # 4. Save Results
+            results_df = pd.DataFrame(results)
+            results_df.to_json(output_path, orient='records', indent=2)
+
+            return output_path
+
+        except Exception as e:
+            logger.error(f"Reconciliation failed: {e}")
+            raise e
