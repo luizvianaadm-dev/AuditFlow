@@ -148,3 +148,55 @@ GitHub pode estar rejeitando o push.
 **Criado por**: Comet (AI Assistant)
 **Data**: Dec 21, 2025
 **Status**: Ativo♪
+
+
+## Solução Automatizada: rebase.js
+
+Criamos um script Node.js que automatiza todo o processo de rebase para os 64 branches.
+
+### Como Usar
+
+```bash
+node scripts/rebase.js
+```
+
+### O que o Script Faz
+
+1. **Auto-descobre branches**: Busca todos os branches que começam com `feature/*`
+2. **Valida conexão Git**: Verifica se o SSH/token está configurado
+3. **Faz rebase automático**: Para cada branch, executa:
+   - `git fetch origin feature/xyz:feature/xyz`
+   - `git checkout feature/xyz`
+   - `git rebase main --strategy-option=ours`
+   - `git push origin feature/xyz --force-with-lease`
+4. **Relata progresso**: Mostra status colorido em tempo real
+5. **Gera resumo**: Exibe estatísticas finais (sucesso, falhas, mergeados)
+
+### Exemplo de Saída
+
+```
+✓ feature/user-auth: Rebase bem-sucedido
+✓ feature/dashboard: Rebase bem-sucedido
+✗ feature/billing: Conflito detectado - resolve manualmente
+...
+
+=== RESUMO ===
+Total: 64
+Sucesso: 62
+Falhas: 2
+Mergeados: 0
+```
+
+### Opções
+
+- `--dry-run`: Simula o rebase sem fazer push
+- `--strategy`: Escolhe estratégia de merge (default: `ours`)
+- `--filter`: Rebase apenas branches que correspondem ao padrão
+
+### Próximos Passos Após Execução
+
+1. Verifique o resumo do script
+2. Para branches com falhas, resolva conflitos manualmente
+3. Acesse GitHub > Pull Requests
+4. Aguarde Vercel reconstruir cada branch
+5. Mergear via interface
