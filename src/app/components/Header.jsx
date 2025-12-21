@@ -17,7 +17,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center cursor-pointer" onClick={() => navigate('/app')}>
-            <div className="bg-gradient-to-tr from-blue-700 to-cyan-500 w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold mr-2">
+            <div className="bg-gradient-to-tr from-primary to-secondary w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold mr-2">
               {user?.name ? user.name[0].toUpperCase() : 'A'}
             </div>
             <h1 className="text-xl font-bold text-slate-800 tracking-tight">AuditFlow</h1>
@@ -25,16 +25,16 @@ const Header = () => {
 
           <div className="flex items-center space-x-6">
             <nav className="flex items-center space-x-4">
-              <button onClick={() => navigate('/app')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
-                <LayoutGrid className="w-4 h-4 mr-1.5" /> Auditorias
-              </button>
-              <button onClick={() => navigate('/app/team')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
-                <Users className="w-4 h-4 mr-1.5" /> Equipe
-              </button>
-              <button onClick={() => navigate('/app/settings')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
+              <button onClick={() => navigate('/app/settings')} className="text-slate-600 hover:text-primary text-sm font-medium flex items-center">
                 <Building className="w-4 h-4 mr-1.5" /> Empresa
               </button>
-              <button onClick={() => navigate('/billing')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
+              <button onClick={() => navigate('/app/team')} className="text-slate-600 hover:text-primary text-sm font-medium flex items-center">
+                <Users className="w-4 h-4 mr-1.5" /> Equipe
+              </button>
+              <button onClick={() => navigate('/app')} className="text-slate-600 hover:text-primary text-sm font-medium flex items-center">
+                <LayoutGrid className="w-4 h-4 mr-1.5" /> Auditorias
+              </button>
+              <button onClick={() => navigate('/billing')} className="text-slate-600 hover:text-primary text-sm font-medium flex items-center">
                 <CreditCard className="w-4 h-4 mr-1.5" /> Assinatura
               </button>
             </nav>

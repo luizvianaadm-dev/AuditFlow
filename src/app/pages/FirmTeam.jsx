@@ -91,7 +91,8 @@ const FirmTeam = () => {
                     <thead className="bg-slate-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Colaborador</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cargo / Departamento</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cargo</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Departamento</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nível</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contato</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
@@ -113,7 +114,9 @@ const FirmTeam = () => {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm text-slate-900">{user.job_role?.name || 'Sem Cargo'}</div>
-                                    <div className="text-xs text-slate-500">{user.department?.name || 'Sem Depto'}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm text-slate-500">{user.department?.name || 'Sem Depto'}</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
@@ -133,7 +136,7 @@ const FirmTeam = () => {
                         ))}
                         {users.length === 0 && (
                             <tr>
-                                <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                                <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
                                     Nenhum colaborador encontrado.
                                 </td>
                             </tr>
