@@ -24,11 +24,17 @@ const BillingPage = () => {
     };
 
     const handleSubscribe = async (planId) => {
-        if (!confirm("Confirmar alteração de plano?")) return;
+        if (!confirm("Confirmar alteração de plano? Você será redirecionado para o pagamento.")) return;
         try {
             setLoading(true);
-            await subscribeToPlan(planId);
-            await loadData();
+            const data = await subscribeToPlan(planId);
+
+            if (data.paymentUrl) {
+                // Redirect to Asaas
+                window.location.href = data.paymentUrl;
+            } else {
+                await loadData();
+            }
         } catch (err) {
             alert(err.message);
             setLoading(false);

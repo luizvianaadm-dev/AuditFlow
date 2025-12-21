@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -34,14 +34,32 @@ def invite_user(
 
     hashed_password = security.get_password_hash(invite.password)
 
+    # Determine system role based on Job Role Level
+    # Level 1 (Sócio) and 2 (Diretor) get Admin access
+    system_role = "auditor"
+    job_role = db.query(models.JobRole).filter(models.JobRole.id == invite.job_role_id).first()
+    if job_role and job_role.level <= 2:
+        system_role = "admin"
+
     new_user = models.User(
         email=invite.email,
         hashed_password=hashed_password,
-        role=invite.role,
-        position=invite.position,
-        firm_id=current_user.firm_id
+        role=system_role, 
+        firm_id=current_user.firm_id,
+        
+        # Profile Data
+        cpf=invite.cpf,
+        phone=invite.phone,
+        birthday=invite.birthday,
+        admission_date=invite.admission_date,
+        
+        # Structure
+        department_id=invite.department_id,
+        job_role_id=invite.job_role_id
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     return new_user
+
+
