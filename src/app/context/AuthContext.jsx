@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       // Fetch user profile from backend
-      fetch('http://localhost:8000/users/me', {
+      fetch(`${API_URL}/users/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => {
