@@ -79,8 +79,6 @@ app.include_router(payroll.router)
 app.include_router(workpapers.router)
 app.include_router(billing.router)
 app.include_router(financial_statements.router)
-from src.api.routes import webhooks
-app.include_router(webhooks.router)
 
 class TransactionList(BaseModel):
     values: List[float]

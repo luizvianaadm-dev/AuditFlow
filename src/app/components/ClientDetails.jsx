@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, FolderOpen, Calendar, ArrowLeft, Settings, Lock, UploadCloud, Map, PieChart } from 'lucide-react';
+import { Plus, FolderOpen, Calendar, ArrowLeft, Settings, Lock, UploadCloud, Map } from 'lucide-react';
 import { getEngagements, createEngagement, getClientAcceptance } from '../services/clientService';
 import AccountMapper from './AccountMapper';
 import AcceptanceChecklist from './AcceptanceChecklist';
@@ -10,7 +10,6 @@ const ClientDetails = ({ client, onBack, onSelectEngagement }) => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedMappingEngagement, setSelectedMappingEngagement] = useState(null);
-  const [selectedFSGeneratorEngagement, setSelectedFSGeneratorEngagement] = useState(null);
   const [newEngagement, setNewEngagement] = useState({ name: '', year: new Date().getFullYear(), service_type: 'br_gaap' });
 
   // Acceptance State
@@ -68,21 +67,6 @@ const ClientDetails = ({ client, onBack, onSelectEngagement }) => {
                   <h2 className="text-lg font-bold">Mapeamento para: {selectedMappingEngagement.name}</h2>
               </div>
               <AccountMapper engagementId={selectedMappingEngagement.id} onComplete={() => setSelectedMappingEngagement(null)} />
-          </div>
-      )
-  }
-
-  if (selectedFSGeneratorEngagement) {
-      return (
-          <div className="p-6 max-w-5xl mx-auto">
-              <button
-                onClick={() => setSelectedFSGeneratorEngagement(null)}
-                className="flex items-center text-slate-500 hover:text-primary mb-6 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar para Detalhes do Cliente
-              </button>
-              <FSWizard engagementId={selectedFSGeneratorEngagement.id} onBack={() => setSelectedFSGeneratorEngagement(null)} />
           </div>
       )
   }
@@ -164,20 +148,13 @@ const ClientDetails = ({ client, onBack, onSelectEngagement }) => {
                   </span>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between space-x-2">
+              <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between">
                   <button
                       onClick={(e) => { e.stopPropagation(); setSelectedMappingEngagement(eng); }}
-                      className="text-xs flex items-center text-slate-500 hover:text-primary transition-colors flex-1"
+                      className="text-xs flex items-center text-slate-500 hover:text-primary transition-colors"
                   >
                       <Map className="w-3 h-3 mr-1" />
-                      Mapear
-                  </button>
-                  <button
-                      onClick={(e) => { e.stopPropagation(); setSelectedFSGeneratorEngagement(eng); }}
-                      className="text-xs flex items-center text-slate-500 hover:text-green-600 transition-colors flex-1"
-                  >
-                      <PieChart className="w-3 h-3 mr-1" />
-                      Relatórios
+                      Mapear Contas
                   </button>
               </div>
             </div>

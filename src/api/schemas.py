@@ -16,7 +16,6 @@ class EngagementRead(EngagementBase):
     id: int
     client_id: int
     chart_mode: str = "standard_auditflow"
-    client_letterhead_url: Optional[str] = None
     transactions: List['TransactionRead'] = []
 
     class Config:
