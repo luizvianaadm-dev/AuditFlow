@@ -1,24 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Building, Users, Upload, CreditCard } from 'lucide-react';
-import { getDepartments, getJobRoles } from '../services/firmService';
+import { getDepartments, getJobRoles, getFirmDetails, updateFirmDetails, uploadLetterhead } from '../services/firmService';
 
 const FirmSettings = () => {
     const [activeTab, setActiveTab] = useState('details');
-    // Mock Data for now, fetching to be implemented or sourced from context
     const [firmData, setFirmData] = useState({
-        companyName: 'Vorcon Auditores',
-        cnpj: '12.345.678/0001-90',
-        crc: 'RJ-000000/O-1',
-        cvm: '12345',
-        email: 'contato@vorcon.com.br',
-        address: 'Av. Paulista, 1000'
+        name: '',
+        cnpj: '',
+        crc_registration: '',
+        cvm_registration: '',
+        email_contact: '' // If backend maps it
     });
 
     const [departments, setDepartments] = useState([]);
     const [jobRoles, setJobRoles] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [letterheadUrl, setLetterheadUrl] = useState(null);
 
     useEffect(() => {
+        const fetchDetails = async () => {
+            try {
+                const firm = await getFirmDetails();
+                setFirmData({
+                    name: firm.name || '',
+                    cnpj: firm.cnpj || '',
+                    crc_registration: firm.crc_registration || '',
+                    cvm_registration: firm.cvm_registration || '',
+                    email_contact: '' // Not yet in backend response usually
+                });
+                if (firm.firm_letterhead_url) setLetterheadUrl(firm.firm_letterhead_url);
+            } catch (err) {
+                console.error("Failed to load firm details", err);
+            }
+        };
+
         const fetchStructure = async () => {
             try {
                 const [depts, roles] = await Promise.all([getDepartments(), getJobRoles()]);
@@ -28,7 +43,10 @@ const FirmSettings = () => {
                 console.error("Failed to load firm structure", err);
             }
         };
+
+        if (activeTab === 'details') fetchDetails();
         if (activeTab === 'structure') fetchStructure();
+        if (activeTab === 'branding') fetchDetails(); // Need letterhead url
     }, [activeTab]);
 
     const handleInputChange = (e) => {
@@ -36,9 +54,27 @@ const FirmSettings = () => {
         setFirmData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSave = (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
-        alert("Dados salvos com sucesso! (Mock)");
+        try {
+            await updateFirmDetails(firmData);
+            alert("Dados salvos com sucesso!");
+        } catch (err) {
+            alert("Erro ao salvar: " + err.message);
+        }
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            const result = await uploadLetterhead(file);
+            setLetterheadUrl(result.url);
+            alert("Upload realizado com sucesso!");
+        } catch (err) {
+            alert("Erro no upload: " + err.message);
+        }
     };
 
     return (
@@ -83,7 +119,7 @@ const FirmSettings = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="col-span-2">
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Razão Social</label>
-                                <input name="companyName" value={firmData.companyName} onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary" />
+                                <input name="name" value={firmData.name} onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">CNPJ</label>
@@ -91,15 +127,11 @@ const FirmSettings = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">CRC da Firma</label>
-                                <input name="crc" value={firmData.crc} onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary" />
+                                <input name="crc_registration" value={firmData.crc_registration} onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Registro CVM</label>
-                                <input name="cvm" value={firmData.cvm} onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">E-mail de Contato</label>
-                                <input name="email" value={firmData.email} onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary" />
+                                <input name="cvm_registration" value={firmData.cvm_registration} onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary" />
                             </div>
                         </div>
                         <div className="flex justify-end">
@@ -157,12 +189,22 @@ const FirmSettings = () => {
 
                 {activeTab === 'branding' && (
                     <div className="text-center py-12">
-                        <Upload className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                        {letterheadUrl ? (
+                            <div className="mb-6">
+                                <img src={`${import.meta.env.VITE_API_URL}${letterheadUrl}`} alt="Papel Timbrado" className="max-w-md mx-auto shadow-md border border-slate-200" />
+                                <p className="text-sm text-green-600 font-medium mt-2">Timbrado Atual Ativo</p>
+                            </div>
+                        ) : (
+                            <Upload className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                        )}
+
                         <h3 className="text-lg font-medium text-slate-900">Papel Timbrado (Letterhead)</h3>
                         <p className="text-slate-500 mb-6">Faça upload do cabeçalho oficial para os relatórios de auditoria.</p>
-                        <button className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg font-medium shadow-sm">
-                            Selecionar Arquivo
-                        </button>
+
+                        <label className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg font-medium shadow-sm cursor-pointer inline-block">
+                            Selecionar Arquivo (PNG/JPG)
+                            <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                        </label>
                     </div>
                 )}
             </div>

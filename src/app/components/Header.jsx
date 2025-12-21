@@ -26,7 +26,7 @@ const Header = () => {
           <div className="flex items-center space-x-6">
             <nav className="flex items-center space-x-4">
               <button onClick={() => navigate('/app')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
-                <LayoutGrid className="w-4 h-4 mr-1.5" /> Dashboard
+                <LayoutGrid className="w-4 h-4 mr-1.5" /> Auditorias
               </button>
               <button onClick={() => navigate('/app/team')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
                 <Users className="w-4 h-4 mr-1.5" /> Equipe

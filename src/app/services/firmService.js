@@ -23,4 +23,41 @@ export const getJobRoles = async () => {
     });
     if (!response.ok) throw new Error('Failed to fetch roles');
     return response.json();
+    return response.json();
+};
+
+export const getFirmDetails = async () => {
+    const response = await fetch(`${API_URL}/firm/`, {
+        headers: getHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to fetch firm details');
+    return response.json();
+};
+
+export const updateFirmDetails = async (data) => {
+    const response = await fetch(`${API_URL}/firm/`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to update firm details');
+    return response.json();
+};
+
+export const uploadLetterhead = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Custom header specifically for file upload (auto-boundary)
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/firm/letterhead`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        body: formData
+    });
+
+    if (!response.ok) throw new Error('Failed to upload letterhead');
+    return response.json();
 };

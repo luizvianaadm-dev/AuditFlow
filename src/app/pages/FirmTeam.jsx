@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Save, Users, Shield, Calendar, Phone, FileText, Briefcase } from 'lucide-react';
 import { getDepartments, getJobRoles } from '../services/firmService';
-import { inviteUser } from '../services/teamService';
+import { inviteUser, getFirmUsers } from '../services/teamService';
 
 const FirmTeam = () => {
     const [users, setUsers] = useState([]);
@@ -10,18 +10,27 @@ const FirmTeam = () => {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // Fetch Structure on Mount
+    // Fetch Data
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const [depts, roles, team] = await Promise.all([
+                getDepartments(),
+                getJobRoles(),
+                getFirmUsers()
+            ]);
+            setDepartments(depts);
+            setJobRoles(roles);
+            setUsers(team);
+        } catch (err) {
+            console.error("Failed to load firm data", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchStructure = async () => {
-            try {
-                const [depts, roles] = await Promise.all([getDepartments(), getJobRoles()]);
-                setDepartments(depts);
-                setJobRoles(roles);
-            } catch (err) {
-                console.error("Failed to load firm structure", err);
-            }
-        };
-        fetchStructure();
+        fetchData();
     }, []);
 
     // Form State
@@ -43,19 +52,18 @@ const FirmTeam = () => {
     const handleInvite = async (e) => {
         e.preventDefault();
         try {
-            // Generate temp int password or expected by backend?
-            // Backend schema expects password.
             const tempPassword = Math.random().toString(36).slice(-8) + "Aa1@";
 
             await inviteUser({
                 ...formData,
                 password: tempPassword,
-                role: 'auditor', // Fixed for now
-                position: 'N/A' // Legacy
+                role: 'auditor',
+                position: 'N/A'
             });
 
             alert(`Convite enviado para ${formData.email}. Senha provisória: ${tempPassword}`);
             setShowInviteModal(false);
+            fetchData(); // Refresh list
         } catch (err) {
             alert("Erro ao convidar: " + err.message);
         }
@@ -77,7 +85,7 @@ const FirmTeam = () => {
                 </button>
             </div>
 
-            {/* List of Users - Placeholder for now until getFirmUsers is real */}
+            {/* List of Users */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <table className="min-w-full divide-y divide-slate-200">
                     <thead className="bg-slate-50">
@@ -90,38 +98,46 @@ const FirmTeam = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-200">
-                        {/* Mock Rows to preserve UI until real data */}
-                        <tr>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                                        LV
+                        {users.map(user => (
+                            <tr key={user.id}>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center">
+                                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                            {user.email[0].toUpperCase()}
+                                        </div>
+                                        <div className="ml-4">
+                                            <div className="text-sm font-medium text-slate-900">{user.email}</div>
+                                            <div className="text-sm text-slate-500">CPF: {user.cpf || '-'}</div>
+                                        </div>
                                     </div>
-                                    <div className="ml-4">
-                                        <div className="text-sm font-medium text-slate-900">Luiz Viana</div>
-                                        <div className="text-sm text-slate-500">CPF: 123.456.789-00</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-slate-900">Sócio Fundador</div>
-                                <div className="text-xs text-slate-500">Administrativo</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                    Sócio (Nível 1)
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-slate-900">luiz@vorcon.com.br</div>
-                                <div className="text-sm text-slate-500">(71) 99999-9999</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    Ativo
-                                </span>
-                            </td>
-                        </tr>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm text-slate-900">{user.job_role?.name || 'Sem Cargo'}</div>
+                                    <div className="text-xs text-slate-500">{user.department?.name || 'Sem Depto'}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                        Nível {user.job_role?.level || '-'}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm text-slate-900">{user.phone || '-'}</div>
+                                    <div className="text-xs text-slate-500">{user.email}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        {user.is_active ? 'Ativo' : 'Inativo'}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                        {users.length === 0 && (
+                            <tr>
+                                <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                                    Nenhum colaborador encontrado.
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>

@@ -258,6 +258,16 @@ class AuditFirmBase(BaseModel):
 class AuditFirmCreate(AuditFirmBase):
     pass
 
+class AuditFirmUpdate(BaseModel):
+    name: Optional[str] = None
+    cnpj: Optional[str] = None
+    crc_registration: Optional[str] = None
+    cnai: Optional[str] = None
+    cnai_expiration_date: Optional[date] = None
+    cvm_registration: Optional[str] = None
+    email_contact: Optional[EmailStr] = None # Not in model but good to have if we expand
+
+
 class AuditFirmRead(AuditFirmBase):
     id: int
     firm_letterhead_url: Optional[str] = None

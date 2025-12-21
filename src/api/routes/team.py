@@ -34,10 +34,17 @@ def invite_user(
 
     hashed_password = security.get_password_hash(invite.password)
 
+    # Determine system role based on Job Role Level
+    # Level 1 (Sócio) and 2 (Diretor) get Admin access
+    system_role = "auditor"
+    job_role = db.query(models.JobRole).filter(models.JobRole.id == invite.job_role_id).first()
+    if job_role and job_role.level <= 2:
+        system_role = "admin"
+
     new_user = models.User(
         email=invite.email,
         hashed_password=hashed_password,
-        role="auditor", # Force "auditor" access level for now, actual role is in job_role
+        role=system_role, 
         firm_id=current_user.firm_id,
         
         # Profile Data
@@ -55,39 +62,4 @@ def invite_user(
     db.refresh(new_user)
     return new_user
 
-@router.post("/letterhead", status_code=status.HTTP_201_CREATED)
-def upload_firm_letterhead(
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    """
-    Uploads the Audit Firm's standard letterhead (Timbrado da Auditoria).
-    """
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can update firm settings")
 
-    # 1. Validate File Type
-    if not file.content_type.startswith('image/'):
-        raise HTTPException(status_code=400, detail="File must be an image (PNG, JPG)")
-
-    # 2. Save File
-    import os
-    import shutil
-    from datetime import datetime
-    
-    UPLOAD_DIR = "static/letterheads"
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-    
-    filename = f"firm_{current_user.firm_id}_{int(datetime.now().timestamp())}_{file.filename}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
-    
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-        
-    # 3. Update Database
-    firm = db.query(models.AuditFirm).filter(models.AuditFirm.id == current_user.firm_id).first()
-    firm.firm_letterhead_url = f"/static/letterheads/{filename}"
-    db.commit()
-
-    return {"message": "Firm Letterhead uploaded successfully", "url": firm.firm_letterhead_url}
