@@ -144,7 +144,23 @@ const FirmSettings = () => {
                                 <input name="email_contact" value={firmData.email_contact} onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary" />
                             </div>
                         </div>
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center pt-4">
+                <button
+                    type="button"
+                    onClick={async () => {
+                        if (!confirm("Isso tentará corrigir tabelas ausentes no banco de dados. Continuar?")) return;
+                        try {
+                            await import('../services/firmService').then(m => m.fixFirmStructure());
+                            alert("Banco de dados reparado! Tente salvar agora.");
+                        } catch (e) {
+                            alert("Erro ao reparar: " + e.message);
+                        }
+                    }}
+                    className="text-xs text-slate-400 hover:text-slate-600 underline"
+                >
+                    Problemas ao Salvar? Reparar Banco de Dados
+                </button>
+
                 <button type="submit" className="bg-primary hover:bg-primary-light text-white px-4 py-2 rounded-lg flex items-center shadow-sm">
                     <Save className="w-4 h-4 mr-2" /> Salvar Alterações
                 </button>
