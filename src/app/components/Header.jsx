@@ -1,3 +1,4 @@
+// Updated menu order: Empresa, Equipe, Auditorias, Assinatura
 import React from 'react';
 import { LogOut, User as UserIcon, CreditCard, LayoutGrid, Users, Building } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
