@@ -1,11 +1,12 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Any, Dict
-from datetime import datetime
+from datetime import datetime, date
 
 # --- Engagement Schemas ---
 class EngagementBase(BaseModel):
     name: str
-    year: int
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
     service_type: str = "br_gaap" # br_gaap, condo_audit, condo_ppa
 
 class EngagementCreate(EngagementBase):
@@ -174,18 +175,75 @@ class ClientRead(ClientBase):
     class Config:
         from_attributes = True
 
+# --- Department & Role Schemas ---
+class DepartmentBase(BaseModel):
+    name: str
+    is_overhead: bool = True
+
+class DepartmentCreate(DepartmentBase):
+    pass
+
+class DepartmentRead(DepartmentBase):
+    id: int
+    firm_id: int
+    class Config:
+        from_attributes = True
+
+class JobRoleBase(BaseModel):
+    name: str
+    level: int
+    hourly_rate: float = 0.0
+
+class JobRoleCreate(JobRoleBase):
+    pass
+
+class JobRoleRead(JobRoleBase):
+    id: int
+    firm_id: int
+    class Config:
+        from_attributes = True
+
 # --- User Schemas ---
 class UserBase(BaseModel):
     email: EmailStr
+    role: Optional[str] = "auditor" # Legacy role, keep for Auth
 
 class UserCreate(UserBase):
     password: str
+    cpf: Optional[str] = None
+    phone: Optional[str] = None
+    birthday: Optional[date] = None
+    admission_date: Optional[date] = None
+    
+    department_id: Optional[int] = None
+    job_role_id: Optional[int] = None
+
+class UserInvite(UserBase):
+    password: str
+    cpf: str
+    phone: str
+    birthday: date
+    admission_date: date
+    
+    department_id: int
+    job_role_id: int
 
 class UserRead(UserBase):
     id: int
     is_active: bool
     role: str
-    position: Optional[str] = None
+    
+    # Profile
+    cpf: Optional[str] = None
+    phone: Optional[str] = None
+    birthday: Optional[date] = None
+    admission_date: Optional[date] = None
+    
+    department_id: Optional[int] = None
+    job_role_id: Optional[int] = None
+    department: Optional[DepartmentRead] = None
+    job_role: Optional[JobRoleRead] = None
+    
     firm_id: int
 
     class Config:
@@ -199,8 +257,24 @@ class AuditFirmBase(BaseModel):
 class AuditFirmCreate(AuditFirmBase):
     pass
 
+class AuditFirmUpdate(BaseModel):
+    name: Optional[str] = None
+    cnpj: Optional[str] = None
+    crc_registration: Optional[str] = None
+    cnai: Optional[str] = None
+    cnai_expiration_date: Optional[date] = None
+    cvm_registration: Optional[str] = None
+    email_contact: Optional[EmailStr] = None # Not in model but good to have if we expand
+
+
 class AuditFirmRead(AuditFirmBase):
     id: int
+    firm_letterhead_url: Optional[str] = None
+    crc_registration: Optional[str] = None
+    cnai: Optional[str] = None
+    cnai_expiration_date: Optional[date] = None
+    cvm_registration: Optional[str] = None
+    email_contact: Optional[EmailStr] = None 
     users: List[UserRead] = []
     clients: List[ClientRead] = []
 
@@ -215,8 +289,34 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetRequest(BaseModel):
+    token: str
+    new_password: str
+
 class FirmRegister(BaseModel):
     companyName: str
     cnpj: str
     email: EmailStr
     password: str
+    crc_registration: Optional[str] = None
+    cnai: Optional[str] = None
+    cnai_expiration_date: Optional[date] = None
+    cvm_registration: Optional[str] = None
+    termsAccepted: bool = False
+    
+    # Profile of the Initial Admin
+    cpf: Optional[str] = None
+    phone: Optional[str] = None
+
+# --- Financial Statements Schemas ---
+class CashFlowItem(BaseModel):
+    description: str
+    value: float
+
+class CashFlowInput(BaseModel):
+    operating_adjustments: List[CashFlowItem] = []
+    investment_activities: List[CashFlowItem] = []
+    financing_activities: List[CashFlowItem] = []

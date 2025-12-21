@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, JSON, LargeBinary, Text
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, JSON, LargeBinary, Text, Date
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from src.api.database import Base
@@ -10,9 +10,17 @@ class AuditFirm(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     cnpj = Column(String, unique=True, index=True)
+    firm_letterhead_url = Column(String, nullable=True) # Timbrado da Firma
+    crc_registration = Column(String, nullable=True) # Registro no CRC
+    cnai = Column(String, nullable=True) # Cadastro Nacional de Auditores Independentes
+    cnai_expiration_date = Column(Date, nullable=True)
+    cvm_registration = Column(String, nullable=True) # Registro CVM (Opcional por enquanto)
+    email_contact = Column(String, nullable=True) # E-mail de contatos da firma
 
     clients = relationship("Client", back_populates="firm")
     users = relationship("User", back_populates="firm")
+    departments = relationship("Department", back_populates="firm")
+    job_roles = relationship("JobRole", back_populates="firm")
     account_mappings = relationship("AccountMapping", back_populates="firm")
     subscription = relationship(
         "Subscription", back_populates="firm", uselist=False)
@@ -71,7 +79,8 @@ class Engagement(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    year = Column(Integer)
+    start_date = Column(DateTime, nullable=True) # Inicio do periodo
+    end_date = Column(DateTime, nullable=True)   # Fim do periodo
     service_type = Column(String, default="br_gaap")
     # standard_auditflow, client_custom
     chart_mode = Column(String, default="standard_auditflow")
@@ -86,6 +95,9 @@ class Engagement(Base):
     team_members = relationship("EngagementTeam", back_populates="engagement")
     workpapers = relationship("WorkPaper", back_populates="engagement")
     mistatements = relationship("Mistatement", back_populates="engagement")
+    trial_balance = relationship("TrialBalanceEntry", back_populates="engagement")
+    fs_context = relationship("FinancialStatementContext", back_populates="engagement", uselist=False)
+
 
 
 class EngagementTeam(Base):
@@ -131,7 +143,6 @@ class AnalysisResult(Base):
 
 class StandardAccount(Base):
     __tablename__ = "standard_accounts"
-
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String, index=True)
     name = Column(String)
@@ -279,3 +290,35 @@ class Payment(Base):
     invoice_url = Column(String, nullable=True)
 
     subscription = relationship("Subscription", back_populates="payments")
+
+class TrialBalanceEntry(Base):
+    __tablename__ = "trial_balance_entries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    engagement_id = Column(Integer, ForeignKey("engagements.id"))
+    account_code = Column(String, index=True)
+    account_name = Column(String)
+
+    # Balances
+    initial_balance = Column(Float, default=0.0)
+    debits = Column(Float, default=0.0)
+    credits = Column(Float, default=0.0)
+    final_balance = Column(Float, default=0.0)
+
+    engagement = relationship("Engagement", back_populates="trial_balance")
+
+class FinancialStatementContext(Base):
+    __tablename__ = "fs_contexts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    engagement_id = Column(Integer, ForeignKey("engagements.id"))
+
+    # Storing the structured JSON data for Blocks 1-5
+    # Identification, Period, Operational Context, Base of Prep, Practices
+    context_data = Column(JSON, default={})
+
+    # Status
+    status = Column(String, default="draft") # draft, reviewed, final
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+    engagement = relationship("Engagement", back_populates="fs_context")
