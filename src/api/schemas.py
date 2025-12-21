@@ -275,6 +275,7 @@ class AuditFirmRead(AuditFirmBase):
     cnai: Optional[str] = None
     cnai_expiration_date: Optional[date] = None
     cvm_registration: Optional[str] = None
+    email_contact: Optional[EmailStr] = None 
     users: List[UserRead] = []
     clients: List[ClientRead] = []
 
