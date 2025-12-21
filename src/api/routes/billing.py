@@ -57,7 +57,7 @@ def get_my_subscription(
     }
 
 @router.post("/subscribe")
-def subscribe(
+async def subscribe(
     data: dict, # { plan_id: int }
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
@@ -85,14 +85,28 @@ def subscribe(
         db.commit()
         db.refresh(sub)
 
-    # Record Mock Payment
+    # Asaas Integration
+    from src.api.services import asaas
+    firm = db.query(models.AuditFirm).filter(models.AuditFirm.id == current_user.firm_id).first()
+    
+    # 1. Create/Get Customer
+    customer_id = await asaas.create_customer(firm.name, current_user.email, firm.cnpj)
+    
+    # 2. Create Payment
+    payment_url = await asaas.create_payment(
+        customer_id=customer_id,
+        value=plan.price,
+        description=f"Assinatura AuditFlow - Plano {plan.name}"
+    )
+
+    # Record Payment (Pending)
     payment = models.Payment(
         subscription_id=sub.id,
         amount=plan.price,
-        status="paid",
-        invoice_url="#"
+        status="pending", # Wait for webhook (not impl yet) or user return
+        invoice_url=payment_url
     )
     db.add(payment)
     db.commit()
 
-    return {"message": "Subscription updated", "plan": plan.name}
+    return {"message": "Subscription initiated", "plan": plan.name, "paymentUrl": payment_url}
