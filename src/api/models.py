@@ -149,8 +149,7 @@ class StandardAccount(Base):
     type = Column(String)
     template_type = Column(String, default="br_gaap")
 
-    parent_id = Column(Integer, ForeignKey(
-        "standard_accounts.id"), nullable=True)
+    parent_id = Column(Integer, ForeignKey("standard_accounts.id"), nullable=True)
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
     level = Column(Integer, default=1)
     is_active = Column(Boolean, default=True)
@@ -160,7 +159,6 @@ class StandardAccount(Base):
     parent = relationship("StandardAccount", remote_side=[
                           id], backref="children")
     client = relationship("Client")
-
 
 class AccountMapping(Base):
     __tablename__ = "account_mappings"

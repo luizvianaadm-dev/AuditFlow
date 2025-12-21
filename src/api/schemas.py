@@ -301,15 +301,6 @@ class FirmRegister(BaseModel):
     cnpj: str
     email: EmailStr
     password: str
-    crc_registration: Optional[str] = None
-    cnai: Optional[str] = None
-    cnai_expiration_date: Optional[date] = None
-    cvm_registration: Optional[str] = None
-    termsAccepted: bool = False
-    
-    # Profile of the Initial Admin
-    cpf: Optional[str] = None
-    phone: Optional[str] = None
 
 # --- Financial Statements Schemas ---
 class CashFlowItem(BaseModel):
