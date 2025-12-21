@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
@@ -8,6 +8,7 @@ const Login = () => {
   const { login, loading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,13 +64,20 @@ const Login = () => {
                   <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-secondary transition-colors" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary sm:text-sm outline-none transition-all bg-slate-50 focus:bg-white"
+                  className="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary sm:text-sm outline-none transition-all bg-slate-50 focus:bg-white"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-secondary focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
@@ -87,18 +95,17 @@ const Login = () => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-secondary hover:text-secondary-dark transition-colors">
+                <button onClick={() => navigate('/forgot-password')} className="font-medium text-secondary hover:text-secondary-dark transition-colors focus:outline-none">
                   Esqueceu a senha?
-                </a>
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white transition-all transform active:scale-[0.98] mt-4 ${
-                loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
-              }`}
+              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white transition-all transform active:scale-[0.98] mt-4 ${loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
+                }`}
             >
               {loading ? 'Entrando...' : 'Entrar na Plataforma'}
             </button>
@@ -119,7 +126,7 @@ const Login = () => {
       </div>
 
       <div className="fixed bottom-4 text-center w-full">
-        <p className="text-xs text-slate-400">© 2024 Vorcon Auditores. Todos os direitos reservados.</p>
+        <p className="text-xs text-slate-400">© 2026 Vorcon Tech. Todos os direitos reservados. Vorcon Consultores Associados Ltda</p>
       </div>
     </div>
   );

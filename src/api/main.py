@@ -60,6 +60,8 @@ Instrumentator().instrument(app).expose(app)
 # Include Routers
 app.include_router(auth.router)
 app.include_router(register.router)
+from src.api.routes import firm
+app.include_router(firm.router)
 app.include_router(clients.router)
 app.include_router(engagements.router)
 app.include_router(analysis.router)
