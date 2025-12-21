@@ -3,6 +3,7 @@ import { Plus, FolderOpen, Calendar, ArrowLeft, Settings, Lock, UploadCloud, Map
 import { getEngagements, createEngagement, getClientAcceptance } from '../services/clientService';
 import AccountMapper from './AccountMapper';
 import AcceptanceChecklist from './AcceptanceChecklist';
+import FSWizard from './FinancialStatements/FSWizard';
 
 const ClientDetails = ({ client, onBack, onSelectEngagement }) => {
   const [engagements, setEngagements] = useState([]);
