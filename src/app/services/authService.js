@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://auditflow-api.railway.app';
 
 export const login = async (email, password) => {
   const formData = new URLSearchParams();
@@ -36,4 +36,38 @@ export const register = async (firmData) => {
   }
 
   return response.json(); // Returns created Firm object
+};
+
+export const forgotPassword = async (email) => {
+  const response = await fetch(`${API_URL}/forgot-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Falha ao solicitar recuperação de senha.');
+  }
+
+  return response.json();
+};
+
+export const resetPassword = async (token, newPassword) => {
+  const response = await fetch(`${API_URL}/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token, new_password: newPassword }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Falha ao redefinir senha.');
+  }
+
+  return response.json(); // Returns success message
 };

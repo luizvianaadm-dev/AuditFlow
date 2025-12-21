@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, JSON, LargeBinary, Text
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, JSON, LargeBinary, Text, Date
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from src.api.database import Base
@@ -10,9 +10,17 @@ class AuditFirm(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     cnpj = Column(String, unique=True, index=True)
+    firm_letterhead_url = Column(String, nullable=True) # Timbrado da Firma
+    crc_registration = Column(String, nullable=True) # Registro no CRC
+    cnai = Column(String, nullable=True) # Cadastro Nacional de Auditores Independentes
+    cnai_expiration_date = Column(Date, nullable=True)
+    cvm_registration = Column(String, nullable=True) # Registro CVM (Opcional por enquanto)
+    email_contact = Column(String, nullable=True) # E-mail de contatos da firma
 
     clients = relationship("Client", back_populates="firm")
     users = relationship("User", back_populates="firm")
+    departments = relationship("Department", back_populates="firm")
+    job_roles = relationship("JobRole", back_populates="firm")
     account_mappings = relationship("AccountMapping", back_populates="firm")
     subscription = relationship(
         "Subscription", back_populates="firm", uselist=False)
@@ -28,10 +36,58 @@ class User(Base):
     role = Column(String, default="auditor")  # admin, auditor
     # Partner, Manager, Senior, Trainee
     position = Column(String, nullable=True)
+    role = Column(String, default="auditor")  # socio_diretor, gerente, senior, assistant, trainee, admin
+    terms_accepted = Column(Boolean, default=False)
+    terms_accepted_at = Column(DateTime, nullable=True)
+    
+    # Profile Data
+    cpf = Column(String, nullable=True, unique=True)
+    phone = Column(String, nullable=True)
+    birthday = Column(Date, nullable=True)
+    admission_date = Column(Date, nullable=True)
+    
+    # Security
+    reset_token = Column(String, nullable=True)
+    reset_token_expires = Column(DateTime, nullable=True)
+    must_change_password = Column(Boolean, default=False)
+
+    # Structured Role & Department
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
+    job_role_id = Column(Integer, ForeignKey("job_roles.id"), nullable=True)
+    
+    # Relationships
+    department = relationship("Department", back_populates="users")
+    job_role = relationship("JobRole", back_populates="users")
+    
     firm_id = Column(Integer, ForeignKey("audit_firms.id"))
 
     firm = relationship("AuditFirm", back_populates="users")
     engagement_teams = relationship("EngagementTeam", back_populates="user")
+
+
+class Department(Base):
+    __tablename__ = "departments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True) # Administrativo, Financeiro...
+    is_overhead = Column(Boolean, default=True) # True = Overhead, False = Revenue Generating (Auditoria)
+    firm_id = Column(Integer, ForeignKey("audit_firms.id"))
+    
+    users = relationship("User", back_populates="department")
+    firm = relationship("AuditFirm", back_populates="departments")
+
+
+class JobRole(Base):
+    __tablename__ = "job_roles"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True) # Sócio, Gerente, Trainee...
+    level = Column(Integer) # 1=Top, 10=Low (Sorting)
+    hourly_rate = Column(Float, default=0.0) # For proposals
+    firm_id = Column(Integer, ForeignKey("audit_firms.id"))
+    
+    users = relationship("User", back_populates="job_role")
+    firm = relationship("AuditFirm", back_populates="job_roles")
 
 
 class Client(Base):
@@ -71,10 +127,13 @@ class Engagement(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    year = Column(Integer)
+    start_date = Column(DateTime, nullable=True) # Inicio do periodo
+    end_date = Column(DateTime, nullable=True)   # Fim do periodo
     service_type = Column(String, default="br_gaap")
     # standard_auditflow, client_custom
     chart_mode = Column(String, default="standard_auditflow")
+    chart_mode = Column(String, default="standard_auditflow")
+    client_letterhead_url = Column(String, nullable=True) # Timbrado do Cliente
     client_id = Column(Integer, ForeignKey("clients.id"))
 
     client = relationship("Client", back_populates="engagements")
@@ -133,7 +192,6 @@ class AnalysisResult(Base):
 
 class StandardAccount(Base):
     __tablename__ = "standard_accounts"
-
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String, index=True)
     name = Column(String)
@@ -150,6 +208,12 @@ class StandardAccount(Base):
         "AccountMapping", back_populates="standard_account")
     parent = relationship("StandardAccount", remote_side=[
                           id], backref="children")
+    parent_id = Column(Integer, ForeignKey("standard_accounts.id"), nullable=True)
+    level = Column(Integer, default=1)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    is_active = Column(Boolean, default=True)
+    mappings = relationship("AccountMapping", back_populates="standard_account")
+    parent = relationship("StandardAccount", remote_side=[id], backref="children")
     client = relationship("Client")
 
 

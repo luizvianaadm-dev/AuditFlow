@@ -1,3 +1,5 @@
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict
@@ -26,6 +28,8 @@ from pydantic import BaseModel
 from src.scripts.benford_analysis import calculate_benford
 from src.scripts.duplicate_analysis import find_duplicates
 from src.api.database import engine, Base
+from src.api import models
+from src.api.routes import clients, auth, register, engagements, analysis, mapping, planning, circularization, acceptance, team, sampling, payroll, workpapers, billing, analytics
 from src.api import models  # Import models to register them with Base
 from src.api.routes import clients, auth, register, engagements, analysis, mapping, planning, circularization, acceptance, team, sampling, payroll, workpapers, billing, financial_statements
 from src.api.logging_config import setup_logging
@@ -54,10 +58,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include Routers
+app.include_router(analytics.router, prefix="/analyze", tags=["Analytics"])
 app.include_router(analytics.router, prefix="/analyze", tags=["Analytics"])
 # Include Routers
 app.include_router(auth.router)
 app.include_router(register.router)
+from src.api.routes import firm
+app.include_router(firm.router)
 app.include_router(clients.router)
 app.include_router(engagements.router)
 app.include_router(analysis.router)
@@ -71,6 +79,8 @@ app.include_router(payroll.router)
 app.include_router(workpapers.router)
 app.include_router(billing.router)
 app.include_router(financial_statements.router)
+from src.api.routes import webhooks
+app.include_router(webhooks.router)
 
 class TransactionList(BaseModel):
     values: List[float]
