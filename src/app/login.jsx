@@ -96,9 +96,8 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white transition-all transform active:scale-[0.98] mt-4 ${
-                loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
-              }`}
+              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white transition-all transform active:scale-[0.98] mt-4 ${loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
+                }`}
             >
               {loading ? 'Entrando...' : 'Entrar na Plataforma'}
             </button>
@@ -119,7 +118,7 @@ const Login = () => {
       </div>
 
       <div className="fixed bottom-4 text-center w-full">
-        <p className="text-xs text-slate-400">© 2024 Vorcon Auditores. Todos os direitos reservados.</p>
+        <p className="text-xs text-slate-400">© 2026 Vorcon Tech. Todos os direitos reservados. Vorcon Consultores Associados Ltda</p>
       </div>
     </div>
   );

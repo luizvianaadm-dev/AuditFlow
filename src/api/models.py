@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, JSON, LargeBinary, Text
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, JSON, LargeBinary, Text, Date
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from src.api.database import Base
@@ -10,6 +10,11 @@ class AuditFirm(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     cnpj = Column(String, unique=True, index=True)
+    firm_letterhead_url = Column(String, nullable=True) # Timbrado da Firma
+    crc_registration = Column(String, nullable=True) # Registro no CRC
+    cnai = Column(String, nullable=True) # Cadastro Nacional de Auditores Independentes
+    cnai_expiration_date = Column(Date, nullable=True)
+    cvm_registration = Column(String, nullable=True) # Registro CVM (Opcional por enquanto)
 
     clients = relationship("Client", back_populates="firm")
     users = relationship("User", back_populates="firm")
@@ -26,6 +31,8 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
     role = Column(String, default="auditor")  # admin, auditor
+    terms_accepted = Column(Boolean, default=False)
+    terms_accepted_at = Column(DateTime, nullable=True)
     # Partner, Manager, Senior, Trainee
     position = Column(String, nullable=True)
     firm_id = Column(Integer, ForeignKey("audit_firms.id"))
@@ -71,9 +78,11 @@ class Engagement(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    year = Column(Integer)
+    start_date = Column(DateTime, nullable=True) # Inicio do periodo
+    end_date = Column(DateTime, nullable=True)   # Fim do periodo
     service_type = Column(String, default="br_gaap")
-    chart_mode = Column(String, default="standard_auditflow") # standard_auditflow, client_custom
+    chart_mode = Column(String, default="standard_auditflow")
+    client_letterhead_url = Column(String, nullable=True) # Timbrado do Cliente
     client_id = Column(Integer, ForeignKey("clients.id"))
 
     client = relationship("Client", back_populates="engagements")

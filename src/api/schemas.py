@@ -5,7 +5,8 @@ from datetime import datetime
 # --- Engagement Schemas ---
 class EngagementBase(BaseModel):
     name: str
-    year: int
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
     service_type: str = "br_gaap" # br_gaap, condo_audit, condo_ppa
 
 class EngagementCreate(EngagementBase):
@@ -15,6 +16,7 @@ class EngagementRead(EngagementBase):
     id: int
     client_id: int
     chart_mode: str = "standard_auditflow"
+    client_letterhead_url: Optional[str] = None
     transactions: List['TransactionRead'] = []
 
     class Config:
@@ -201,6 +203,11 @@ class AuditFirmCreate(AuditFirmBase):
 
 class AuditFirmRead(AuditFirmBase):
     id: int
+    firm_letterhead_url: Optional[str] = None
+    crc_registration: Optional[str] = None
+    cnai: Optional[str] = None
+    cnai_expiration_date: Optional[date] = None
+    cvm_registration: Optional[str] = None
     users: List[UserRead] = []
     clients: List[ClientRead] = []
 
@@ -220,6 +227,11 @@ class FirmRegister(BaseModel):
     cnpj: str
     email: EmailStr
     password: str
+    crc_registration: Optional[str] = None
+    cnai: Optional[str] = None
+    cnai_expiration_date: Optional[date] = None
+    cvm_registration: Optional[str] = None
+    termsAccepted: bool = False
 
 # --- Financial Statements Schemas ---
 class CashFlowItem(BaseModel):

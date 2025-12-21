@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from datetime import datetime
 from src.api.database import get_db
 from src.api import models, schemas, security
 
@@ -21,18 +22,32 @@ def register_firm(firm_data: schemas.FirmRegister, db: Session = Depends(get_db)
         # 3. Create Firm
         new_firm = models.AuditFirm(
             name=firm_data.companyName,
-            cnpj=firm_data.cnpj
+            cnpj=firm_data.cnpj,
+            crc_registration=firm_data.crc_registration,
+            cnai=firm_data.cnai,
+            cnai_expiration_date=firm_data.cnai_expiration_date,
+            cvm_registration=firm_data.cvm_registration
         )
         db.add(new_firm)
         db.flush() # Flush to get ID
 
         # 4. Create Admin User
         hashed_pwd = security.get_password_hash(firm_data.password)
+        role = "admin" # Default for firm creator
+        
+        # Vorcon Special Access
+        if firm_data.email.endswith("@vorcon.com.br"):
+            # Auto-assign Enterprise Plan mock? 
+            # For now, just ensuring they are admins is enough as per current "role" column.
+            pass
+
         new_user = models.User(
             email=firm_data.email,
             hashed_password=hashed_pwd,
-            role="admin",
-            firm_id=new_firm.id
+            role=role,
+            firm_id=new_firm.id,
+            terms_accepted=firm_data.termsAccepted,
+            terms_accepted_at=datetime.utcnow() if firm_data.termsAccepted else None
         )
         db.add(new_user)
 

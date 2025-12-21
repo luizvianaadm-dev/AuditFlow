@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { login as apiLogin } from '../services/authService';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -11,9 +13,19 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      // In a real app, we would validate the token with the backend here via /users/me
-      // For now, we assume it's valid if present
-      setUser({ email: 'user@authenticated.com' }); // Placeholder
+      // Fetch user profile from backend
+      fetch('http://localhost:8000/users/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => {
+          if (res.ok) return res.json();
+          throw new Error('Failed to fetch user');
+        })
+        .then(data => setUser(data))
+        .catch(() => {
+          // Token invalid
+          logout();
+        });
     }
   }, [token]);
 
