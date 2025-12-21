@@ -1,40 +1,23 @@
-// src/app/services/auditService.js
-// Service to communicate with AuditFlow API
+const API_URL = import.meta.env.VITE_API_URL || 'https://auditflow-api.railway.app';
 
-const API_BASE_URL = 'http://localhost:8000'; // Or configure via ENV
-
-/**
- * Sends a list of transactions to the backend for Benford's Law analysis.
- * @param {number[]} transactions - List of monetary values.
- * @returns {Promise<Object>} - The analysis result (expected, observed, anomalies).
- */
-export async function analyzeBenford(transactions) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/analyze/benford`, {
 export const analyzeBenford = async (values) => {
   try {
-    const response = await fetch('http://localhost:8000/analyze/benford', {
+    const response = await fetch(`${API_URL}/analyze/benford`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ transactions }),
       body: JSON.stringify({ values }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to analyze data');
       throw new Error(errorData.detail || 'Erro ao realizar a análise');
     }
 
     return await response.json();
   } catch (error) {
     console.error('Audit Service Error:', error);
-    throw error;
-  }
-}
-    console.error("Audit Service Error:", error);
     throw error;
   }
 };
