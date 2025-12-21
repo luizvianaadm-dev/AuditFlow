@@ -145,21 +145,27 @@ def get_mapping_context(
 
     # 2. Get Standard Accounts based on mode
     if engagement.chart_mode == "client_custom":
-        std_accounts = db.query(models.StandardAccount).filter(
+        std_accounts_query = db.query(models.StandardAccount).filter(
             models.StandardAccount.client_id == engagement.client_id
         ).all()
     else:
         # Default AuditFlow (BR GAAP)
-        std_accounts = db.query(models.StandardAccount).filter(
+        std_accounts_query = db.query(models.StandardAccount).filter(
             models.StandardAccount.client_id == None,
             models.StandardAccount.template_type == "br_gaap" # or engagement.service_type if it matches
         ).all()
 
+    # Convert to Pydantic models explicitly to avoid serialization issues
+    std_accounts = [schemas.StandardAccountRead.model_validate(acc) for acc in std_accounts_query]
+
     # 3. Get Existing Mappings
     # Mappings are by Firm. But we should try to match by client_account_code.
-    mappings = db.query(models.AccountMapping).filter(
+    mappings_query = db.query(models.AccountMapping).filter(
         models.AccountMapping.firm_id == current_user.firm_id
     ).all()
+
+    # Explicit conversion
+    mappings = [schemas.AccountMappingRead.model_validate(m) for m in mappings_query]
 
     return {
         "client_accounts": client_accounts,

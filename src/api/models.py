@@ -82,8 +82,7 @@ class Engagement(Base):
     start_date = Column(DateTime, nullable=True) # Inicio do periodo
     end_date = Column(DateTime, nullable=True)   # Fim do periodo
     service_type = Column(String, default="br_gaap")
-    # standard_auditflow, client_custom
-    chart_mode = Column(String, default="standard_auditflow")
+    chart_mode = Column(String, default="standard_auditflow") # standard_auditflow, client_custom
     client_id = Column(Integer, ForeignKey("clients.id"))
 
     client = relationship("Client", back_populates="engagements")
@@ -154,10 +153,8 @@ class StandardAccount(Base):
     level = Column(Integer, default=1)
     is_active = Column(Boolean, default=True)
 
-    mappings = relationship(
-        "AccountMapping", back_populates="standard_account")
-    parent = relationship("StandardAccount", remote_side=[
-                          id], backref="children")
+    mappings = relationship("AccountMapping", back_populates="standard_account")
+    parent = relationship("StandardAccount", remote_side=[id], backref="children")
     client = relationship("Client")
 
 class AccountMapping(Base):
