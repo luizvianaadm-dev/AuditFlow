@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Mail, User, Building2, FileText, ShieldCheck, CheckCircle } from 'lucide-react';
+import { Lock, Mail, User, Building2, FileText, ShieldCheck, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../services/authService';
 import { LegalModal } from './LegalModals';
@@ -22,6 +22,8 @@ const Register = () => {
   const [error, setError] = useState(null);
 
   // Legal State
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [legalState, setLegalState] = useState({ terms: false, privacy: false });
@@ -243,14 +245,21 @@ const Register = () => {
                   <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-secondary transition-colors" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   required
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary sm:text-sm outline-none transition-all bg-slate-50 focus:bg-white"
+                  className="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary sm:text-sm outline-none transition-all bg-slate-50 focus:bg-white"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-secondary focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
@@ -264,14 +273,21 @@ const Register = () => {
                   <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-secondary transition-colors" />
                 </div>
                 <input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
                   required
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary sm:text-sm outline-none transition-all bg-slate-50 focus:bg-white"
+                  className="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary sm:text-sm outline-none transition-all bg-slate-50 focus:bg-white"
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-secondary focus:outline-none"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
