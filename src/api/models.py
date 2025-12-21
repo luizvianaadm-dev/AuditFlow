@@ -33,6 +33,9 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+    role = Column(String, default="auditor")  # admin, auditor
+    # Partner, Manager, Senior, Trainee
+    position = Column(String, nullable=True)
     role = Column(String, default="auditor")  # socio_diretor, gerente, senior, assistant, trainee, admin
     terms_accepted = Column(Boolean, default=False)
     terms_accepted_at = Column(DateTime, nullable=True)
@@ -127,6 +130,8 @@ class Engagement(Base):
     start_date = Column(DateTime, nullable=True) # Inicio do periodo
     end_date = Column(DateTime, nullable=True)   # Fim do periodo
     service_type = Column(String, default="br_gaap")
+    # standard_auditflow, client_custom
+    chart_mode = Column(String, default="standard_auditflow")
     chart_mode = Column(String, default="standard_auditflow")
     client_letterhead_url = Column(String, nullable=True) # Timbrado do Cliente
     client_id = Column(Integer, ForeignKey("clients.id"))
@@ -192,6 +197,17 @@ class StandardAccount(Base):
     name = Column(String)
     type = Column(String)
     template_type = Column(String, default="br_gaap")
+
+    parent_id = Column(Integer, ForeignKey(
+        "standard_accounts.id"), nullable=True)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    level = Column(Integer, default=1)
+    is_active = Column(Boolean, default=True)
+
+    mappings = relationship(
+        "AccountMapping", back_populates="standard_account")
+    parent = relationship("StandardAccount", remote_side=[
+                          id], backref="children")
     parent_id = Column(Integer, ForeignKey("standard_accounts.id"), nullable=True)
     level = Column(Integer, default=1)
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
