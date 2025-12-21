@@ -14,6 +14,64 @@ def get_departments(
 ):
     return db.query(models.Department).filter(models.Department.firm_id == current_user.firm_id).all()
 
+@router.post("/fix-structure")
+def fix_missing_structure(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_user)
+):
+    """
+    Helper to re-initialize departments, roles, and fix DB schema if columns are missing.
+    """
+    from sqlalchemy import text
+    firm_id = current_user.firm_id
+    
+    # 1. Patch Database Schema (Manual Migration for email_contact)
+    try:
+        # Check if column exists, if not add it. 
+        # PostgreSQL specific check or just try adding and ignore error?
+        # Robust way:
+        db.execute(text("ALTER TABLE audit_firms ADD COLUMN IF NOT EXISTS email_contact VARCHAR;"))
+        db.commit()
+    except Exception as e:
+        print(f"Schema patch error (might be ignored): {e}")
+        db.rollback()
+
+    # 2. Check Departments
+    if db.query(models.Department).filter(models.Department.firm_id == firm_id).count() == 0:
+        default_depts = [
+            {"name": "Administrativo", "is_overhead": True},
+            {"name": "Financeiro", "is_overhead": True},
+            {"name": "Recursos Humanos", "is_overhead": True},
+            {"name": "Comercial", "is_overhead": True},
+            {"name": "Jurídico", "is_overhead": True},
+            {"name": "Auditoria", "is_overhead": False},
+        ]
+        for dept in default_depts:
+            db.add(models.Department(name=dept["name"], is_overhead=dept["is_overhead"], firm_id=firm_id))
+    
+    # Check Roles
+    if db.query(models.JobRole).filter(models.JobRole.firm_id == firm_id).count() == 0:
+        default_roles = [
+            {"name": "Sócio", "level": 1, "hourly_rate": 500.0},
+            {"name": "Diretor", "level": 2, "hourly_rate": 400.0},
+            {"name": "Gerente Sênior", "level": 3, "hourly_rate": 350.0},
+            {"name": "Gerente", "level": 4, "hourly_rate": 300.0},
+            {"name": "Supervisor A", "level": 5, "hourly_rate": 250.0},
+            {"name": "Supervisor B", "level": 6, "hourly_rate": 220.0},
+            {"name": "Sênior A", "level": 7, "hourly_rate": 180.0},
+            {"name": "Sênior B", "level": 8, "hourly_rate": 160.0},
+            {"name": "Sênior C", "level": 9, "hourly_rate": 140.0},
+            {"name": "Assistente A", "level": 10, "hourly_rate": 100.0},
+            {"name": "Assistente B", "level": 11, "hourly_rate": 80.0},
+            {"name": "Trainee", "level": 12, "hourly_rate": 50.0},
+            {"name": "Estagiário", "level": 13, "hourly_rate": 30.0},
+        ]
+        for role in default_roles:
+            db.add(models.JobRole(name=role["name"], level=role["level"], hourly_rate=role["hourly_rate"], firm_id=firm_id))
+            
+    db.commit()
+    return {"message": "Structure fixed and Schema Patched"}
+
 @router.get("/job-roles", response_model=List[schemas.JobRoleRead])
 def get_job_roles(
     current_user: models.User = Depends(security.get_current_user),

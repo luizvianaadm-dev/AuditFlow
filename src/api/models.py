@@ -15,6 +15,7 @@ class AuditFirm(Base):
     cnai = Column(String, nullable=True) # Cadastro Nacional de Auditores Independentes
     cnai_expiration_date = Column(Date, nullable=True)
     cvm_registration = Column(String, nullable=True) # Registro CVM (Opcional por enquanto)
+    email_contact = Column(String, nullable=True) # E-mail de contatos da firma
 
     clients = relationship("Client", back_populates="firm")
     users = relationship("User", back_populates="firm")
