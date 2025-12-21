@@ -171,7 +171,7 @@ const FirmSettings = () => {
                 }
 
             </div
-            )    </div>
+            )  
             )                    activeTab === 'structure' && (
                         <div>
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">Estrutura Organizacional</h3>
