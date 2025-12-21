@@ -18,6 +18,8 @@ class AuditFirm(Base):
 
     clients = relationship("Client", back_populates="firm")
     users = relationship("User", back_populates="firm")
+    departments = relationship("Department", back_populates="firm")
+    job_roles = relationship("JobRole", back_populates="firm")
     account_mappings = relationship("AccountMapping", back_populates="firm")
     subscription = relationship(
         "Subscription", back_populates="firm", uselist=False)
@@ -45,12 +47,43 @@ class User(Base):
     reset_token_expires = Column(DateTime, nullable=True)
     must_change_password = Column(Boolean, default=False)
 
-    # Partner, Manager, Senior, Trainee
-    position = Column(String, nullable=True)
+    # Structured Role & Department
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
+    job_role_id = Column(Integer, ForeignKey("job_roles.id"), nullable=True)
+    
+    # Relationships
+    department = relationship("Department", back_populates="users")
+    job_role = relationship("JobRole", back_populates="users")
+    
     firm_id = Column(Integer, ForeignKey("audit_firms.id"))
 
     firm = relationship("AuditFirm", back_populates="users")
     engagement_teams = relationship("EngagementTeam", back_populates="user")
+
+
+class Department(Base):
+    __tablename__ = "departments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True) # Administrativo, Financeiro...
+    is_overhead = Column(Boolean, default=True) # True = Overhead, False = Revenue Generating (Auditoria)
+    firm_id = Column(Integer, ForeignKey("audit_firms.id"))
+    
+    users = relationship("User", back_populates="department")
+    firm = relationship("AuditFirm", back_populates="departments")
+
+
+class JobRole(Base):
+    __tablename__ = "job_roles"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True) # Sócio, Gerente, Trainee...
+    level = Column(Integer) # 1=Top, 10=Low (Sorting)
+    hourly_rate = Column(Float, default=0.0) # For proposals
+    firm_id = Column(Integer, ForeignKey("audit_firms.id"))
+    
+    users = relationship("User", back_populates="job_role")
+    firm = relationship("AuditFirm", back_populates="job_roles")
 
 
 class Client(Base):

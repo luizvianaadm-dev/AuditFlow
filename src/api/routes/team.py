@@ -37,9 +37,18 @@ def invite_user(
     new_user = models.User(
         email=invite.email,
         hashed_password=hashed_password,
-        role=invite.role,
-        position=invite.position,
-        firm_id=current_user.firm_id
+        role="auditor", # Force "auditor" access level for now, actual role is in job_role
+        firm_id=current_user.firm_id,
+        
+        # Profile Data
+        cpf=invite.cpf,
+        phone=invite.phone,
+        birthday=invite.birthday,
+        admission_date=invite.admission_date,
+        
+        # Structure
+        department_id=invite.department_id,
+        job_role_id=invite.job_role_id
     )
     db.add(new_user)
     db.commit()

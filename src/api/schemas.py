@@ -176,10 +176,38 @@ class ClientRead(ClientBase):
     class Config:
         from_attributes = True
 
+# --- Department & Role Schemas ---
+class DepartmentBase(BaseModel):
+    name: str
+    is_overhead: bool = True
+
+class DepartmentCreate(DepartmentBase):
+    pass
+
+class DepartmentRead(DepartmentBase):
+    id: int
+    firm_id: int
+    class Config:
+        from_attributes = True
+
+class JobRoleBase(BaseModel):
+    name: str
+    level: int
+    hourly_rate: float = 0.0
+
+class JobRoleCreate(JobRoleBase):
+    pass
+
+class JobRoleRead(JobRoleBase):
+    id: int
+    firm_id: int
+    class Config:
+        from_attributes = True
+
 # --- User Schemas ---
 class UserBase(BaseModel):
     email: EmailStr
-    role: Optional[str] = "auditor"
+    role: Optional[str] = "auditor" # Legacy role, keep for Auth
 
 class UserCreate(UserBase):
     password: str
@@ -187,7 +215,9 @@ class UserCreate(UserBase):
     phone: Optional[str] = None
     birthday: Optional[date] = None
     admission_date: Optional[date] = None
-    position: Optional[str] = None
+    
+    department_id: Optional[int] = None
+    job_role_id: Optional[int] = None
 
 class UserInvite(UserBase):
     password: str
@@ -195,8 +225,9 @@ class UserInvite(UserBase):
     phone: str
     birthday: date
     admission_date: date
-    position: str
-    role: str
+    
+    department_id: int
+    job_role_id: int
 
 class UserRead(UserBase):
     id: int
@@ -208,7 +239,11 @@ class UserRead(UserBase):
     phone: Optional[str] = None
     birthday: Optional[date] = None
     admission_date: Optional[date] = None
-    position: Optional[str] = None
+    
+    department_id: Optional[int] = None
+    job_role_id: Optional[int] = None
+    department: Optional[DepartmentRead] = None
+    job_role: Optional[JobRoleRead] = None
     
     firm_id: int
 
@@ -261,6 +296,10 @@ class FirmRegister(BaseModel):
     cnai_expiration_date: Optional[date] = None
     cvm_registration: Optional[str] = None
     termsAccepted: bool = False
+    
+    # Profile of the Initial Admin
+    cpf: Optional[str] = None
+    phone: Optional[str] = None
 
 # --- Financial Statements Schemas ---
 class CashFlowItem(BaseModel):

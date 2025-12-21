@@ -1,45 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus, Save, Users, Shield, Calendar, Phone, FileText } from 'lucide-react';
-// import { inviteUser, getFirmUsers } from '../services/teamService'; // To be implemented
+import { UserPlus, Save, Users, Shield, Calendar, Phone, FileText, Briefcase } from 'lucide-react';
+import { getDepartments, getJobRoles } from '../services/firmService';
+import { inviteUser } from '../services/teamService';
 
 const FirmTeam = () => {
     const [users, setUsers] = useState([]);
+    const [departments, setDepartments] = useState([]);
+    const [jobRoles, setJobRoles] = useState([]);
     const [showInviteModal, setShowInviteModal] = useState(false);
-    const [loading, setLoading] = useState(false); // Should be true initially when fetching
+    const [loading, setLoading] = useState(false);
+
+    // Fetch Structure on Mount
+    useEffect(() => {
+        const fetchStructure = async () => {
+            try {
+                const [depts, roles] = await Promise.all([getDepartments(), getJobRoles()]);
+                setDepartments(depts);
+                setJobRoles(roles);
+            } catch (err) {
+                console.error("Failed to load firm structure", err);
+            }
+        };
+        fetchStructure();
+    }, []);
 
     // Form State
     const [formData, setFormData] = useState({
-        name: '', // We use 'email' for invite, maybe request name too? Backend User model has no name column distinct from Auth? AuditFirm has users. User has email.
-        // Wait, User table usually doesn't have "Name" if it's just Auth? 
-        // In `models.py` User has `email`, `role`, `cpf`, etc. No `name`? 
-        // Usually `name` is useful. I should check if I missed `name` in User table.
-        // If missing, I should add it or use Email as name. 
-        // Let's assume we need to add Name to User table too? Or maybe AuditFirm has many Users, and User has a linked "Profile"?
-        // For now, I'll just use Email as the primary identity, or add Name if I can.
-        // Actually, `User` usually represents the credential. A `UserProfile` or just columns on `User` is fine.
-        // I added `cpf`, `phone`... but forgot `name`! user.email is not a name.
-        // User will definitely want names. I'll add `name` to the form and assume backend might need update or I'll just store it in context?
-        // Let's look at `User` model again. It has `email`.
-        // I will add `name` to the Request for Invite, and we might need to update Model if it's strictly required.
-        // OR, I can use `position` as the label.
-        // I'll add `full_name` to the form.
-
         email: '',
-        role: 'auditor', // Default
         cpf: '',
         phone: '',
         birthday: '',
         admission_date: '',
-        position: 'Trainee'
+        department_id: '',
+        job_role_id: ''
     });
-
-    const roles = [
-        { id: 'socio_diretor', label: 'Sócio / Diretor', level: 1 },
-        { id: 'gerente', label: 'Gerente', level: 2 },
-        { id: 'senior', label: 'Sênior', level: 3 },
-        { id: 'assistente', label: 'Assistente', level: 4 },
-        { id: 'trainee', label: 'Trainee / Estagiário', level: 5 }
-    ];
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -48,11 +42,23 @@ const FirmTeam = () => {
 
     const handleInvite = async (e) => {
         e.preventDefault();
-        // Call API (Mock for now)
-        console.log("Inviting:", formData);
-        alert(`Convite enviado para ${formData.email} com senha provisória!`);
-        setShowInviteModal(false);
-        // Reset form
+        try {
+            // Generate temp int password or expected by backend?
+            // Backend schema expects password.
+            const tempPassword = Math.random().toString(36).slice(-8) + "Aa1@";
+
+            await inviteUser({
+                ...formData,
+                password: tempPassword,
+                role: 'auditor', // Fixed for now
+                position: 'N/A' // Legacy
+            });
+
+            alert(`Convite enviado para ${formData.email}. Senha provisória: ${tempPassword}`);
+            setShowInviteModal(false);
+        } catch (err) {
+            alert("Erro ao convidar: " + err.message);
+        }
     };
 
     return (
@@ -71,20 +77,20 @@ const FirmTeam = () => {
                 </button>
             </div>
 
-            {/* List of Users */}
+            {/* List of Users - Placeholder for now until getFirmUsers is real */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <table className="min-w-full divide-y divide-slate-200">
                     <thead className="bg-slate-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Colaborador</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cargo / Função</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nível de Acesso</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cargo / Departamento</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nível</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contato</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-200">
-                        {/* Mock Rows */}
+                        {/* Mock Rows to preserve UI until real data */}
                         <tr>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
@@ -99,11 +105,11 @@ const FirmTeam = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-slate-900">Sócio Fundador</div>
-                                <div className="text-xs text-slate-500">Desde: 01/01/2024</div>
+                                <div className="text-xs text-slate-500">Administrativo</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                    Sócio / Diretor
+                                    Sócio (Nível 1)
                                 </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -159,21 +165,29 @@ const FirmTeam = () => {
                                     </div>
                                 </div>
 
-                                {/* Role & Position */}
+                                {/* Role & Dept */}
                                 <div className="col-span-2">
                                     <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center">
-                                        <Shield className="w-4 h-4 mr-2 text-primary" /> Cargo e Acesso
+                                        <Briefcase className="w-4 h-4 mr-2 text-primary" /> Cargo e Departamento
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">Nível de Acesso (RBAC)</label>
-                                            <select name="role" onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary">
-                                                {roles.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Cargo (Função)</label>
+                                            <select name="job_role_id" required onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary">
+                                                <option value="">Selecione um Cargo</option>
+                                                {jobRoles.map(role => (
+                                                    <option key={role.id} value={role.id}>{role.name} (Nível {role.level})</option>
+                                                ))}
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">Cargo na Carteira</label>
-                                            <input name="position" type="text" onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary" placeholder="Ex: Auditor Júnior II" />
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Departamento</label>
+                                            <select name="department_id" required onChange={handleInputChange} className="w-full border-slate-300 rounded-lg focus:ring-primary">
+                                                <option value="">Selecione um Departamento</option>
+                                                {departments.map(dept => (
+                                                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 mb-1">Data de Admissão</label>
