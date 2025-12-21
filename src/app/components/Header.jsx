@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, User as UserIcon, CreditCard, LayoutGrid } from 'lucide-react';
+import { LogOut, User as UserIcon, CreditCard, LayoutGrid, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +27,9 @@ const Header = () => {
             <nav className="flex items-center space-x-4">
               <button onClick={() => navigate('/app')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
                 <LayoutGrid className="w-4 h-4 mr-1.5" /> Dashboard
+              </button>
+              <button onClick={() => navigate('/app/team')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
+                <Users className="w-4 h-4 mr-1.5" /> Equipe
               </button>
               <button onClick={() => navigate('/billing')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
                 <CreditCard className="w-4 h-4 mr-1.5" /> Assinatura

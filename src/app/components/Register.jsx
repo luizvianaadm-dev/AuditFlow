@@ -16,6 +16,8 @@ const Register = () => {
     cnai_expiration_date: '',
     crc_registration: '',
     cvm_registration: '',
+    cpf: '',
+    phone: '',
     termsAccepted: false
   });
   const [loading, setLoading] = useState(false);
@@ -57,6 +59,8 @@ const Register = () => {
         cnai_expiration_date: formData.cnai_expiration_date,
         crc_registration: formData.crc_registration,
         cvm_registration: formData.cvm_registration,
+        cpf: formData.cpf,
+        phone: formData.phone,
         termsAccepted: true // Validated by disable button logic
       });
       // On success, redirect to login
@@ -230,6 +234,44 @@ const Register = () => {
                   className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary sm:text-sm outline-none transition-all bg-slate-50 focus:bg-white"
                   placeholder="admin@empresa.com"
                   value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            {/* CPF & Phone */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  CPF
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-slate-400 group-focus-within:text-secondary transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    name="cpf"
+                    required
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary sm:text-sm outline-none transition-all bg-slate-50 focus:bg-white"
+                    placeholder="000.000.000-00"
+                    value={formData.cpf}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Telefone
+                </label>
+                <input
+                  type="text"
+                  name="phone"
+                  required
+                  className="block w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary sm:text-sm outline-none transition-all bg-slate-50 focus:bg-white"
+                  placeholder="(00) 00000-0000"
+                  value={formData.phone}
                   onChange={handleChange}
                 />
               </div>

@@ -30,9 +30,21 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
-    role = Column(String, default="auditor")  # admin, auditor
+    role = Column(String, default="auditor")  # socio_diretor, gerente, senior, assistant, trainee, admin
     terms_accepted = Column(Boolean, default=False)
     terms_accepted_at = Column(DateTime, nullable=True)
+    
+    # Profile Data
+    cpf = Column(String, nullable=True, unique=True)
+    phone = Column(String, nullable=True)
+    birthday = Column(Date, nullable=True)
+    admission_date = Column(Date, nullable=True)
+    
+    # Security
+    reset_token = Column(String, nullable=True)
+    reset_token_expires = Column(DateTime, nullable=True)
+    must_change_password = Column(Boolean, default=False)
+
     # Partner, Manager, Senior, Trainee
     position = Column(String, nullable=True)
     firm_id = Column(Integer, ForeignKey("audit_firms.id"))

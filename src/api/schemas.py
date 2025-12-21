@@ -179,15 +179,37 @@ class ClientRead(ClientBase):
 # --- User Schemas ---
 class UserBase(BaseModel):
     email: EmailStr
+    role: Optional[str] = "auditor"
 
 class UserCreate(UserBase):
     password: str
+    cpf: Optional[str] = None
+    phone: Optional[str] = None
+    birthday: Optional[date] = None
+    admission_date: Optional[date] = None
+    position: Optional[str] = None
+
+class UserInvite(UserBase):
+    password: str
+    cpf: str
+    phone: str
+    birthday: date
+    admission_date: date
+    position: str
+    role: str
 
 class UserRead(UserBase):
     id: int
     is_active: bool
     role: str
+    
+    # Profile
+    cpf: Optional[str] = None
+    phone: Optional[str] = None
+    birthday: Optional[date] = None
+    admission_date: Optional[date] = None
     position: Optional[str] = None
+    
     firm_id: int
 
     class Config:
@@ -221,6 +243,13 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetRequest(BaseModel):
+    token: str
+    new_password: str
 
 class FirmRegister(BaseModel):
     companyName: str

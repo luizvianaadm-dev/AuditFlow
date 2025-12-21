@@ -2,6 +2,9 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Login from './login';
 import Register from './components/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import FirmTeam from './pages/FirmTeam';
 import LandingPage from './pages/LandingPage';
 import BillingPage from './pages/BillingPage';
 import ClientList from './components/ClientList';
@@ -29,11 +32,19 @@ const AppRoutes = () => {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected Routes */}
             <Route path="/billing" element={
                 <ProtectedRoute>
                     <BillingPage />
+                </ProtectedRoute>
+            } />
+
+            <Route path="/app/team" element={
+                <ProtectedRoute>
+                    <FirmTeam />
                 </ProtectedRoute>
             } />
 
@@ -74,13 +85,13 @@ const DashboardWrapper = () => {
 
     if (selectedEngagement) {
         return (
-             <div>
-               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                 <button onClick={handleBackToClientDetails} className="text-sm text-slate-500 hover:text-slate-800 underline">
-                  &larr; Voltar para {selectedClient.name}
-                </button>
-               </div>
-              <BenfordDashboard engagement={selectedEngagement} client={selectedClient} />
+            <div>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <button onClick={handleBackToClientDetails} className="text-sm text-slate-500 hover:text-slate-800 underline">
+                        &larr; Voltar para {selectedClient.name}
+                    </button>
+                </div>
+                <BenfordDashboard engagement={selectedEngagement} client={selectedClient} />
             </div>
         );
     }
@@ -88,9 +99,9 @@ const DashboardWrapper = () => {
     if (selectedClient) {
         return (
             <ClientDetails
-              client={selectedClient}
-              onBack={handleBackToClients}
-              onSelectEngagement={handleEngagementSelect}
+                client={selectedClient}
+                onBack={handleBackToClients}
+                onSelectEngagement={handleEngagementSelect}
             />
         );
     }
