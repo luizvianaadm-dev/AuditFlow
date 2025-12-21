@@ -5,6 +5,7 @@ import Register from './components/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import FirmTeam from './pages/FirmTeam';
+import FirmSettings from './pages/FirmSettings';
 import LandingPage from './pages/LandingPage';
 import BillingPage from './pages/BillingPage';
 import ClientList from './components/ClientList';
@@ -45,6 +46,12 @@ const AppRoutes = () => {
             <Route path="/app/team" element={
                 <ProtectedRoute>
                     <FirmTeam />
+                </ProtectedRoute>
+            } />
+
+            <Route path="/app/settings" element={
+                <ProtectedRoute>
+                    <FirmSettings />
                 </ProtectedRoute>
             } />
 

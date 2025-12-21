@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, User as UserIcon, CreditCard, LayoutGrid, Users } from 'lucide-react';
+import { LogOut, User as UserIcon, CreditCard, LayoutGrid, Users, Building } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,6 +30,9 @@ const Header = () => {
               </button>
               <button onClick={() => navigate('/app/team')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
                 <Users className="w-4 h-4 mr-1.5" /> Equipe
+              </button>
+              <button onClick={() => navigate('/app/settings')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
+                <Building className="w-4 h-4 mr-1.5" /> Empresa
               </button>
               <button onClick={() => navigate('/billing')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
                 <CreditCard className="w-4 h-4 mr-1.5" /> Assinatura
