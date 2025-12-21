@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Any, Dict
-from datetime import datetime
+from datetime import datetime, date
 
 # --- Engagement Schemas ---
 class EngagementBase(BaseModel):
