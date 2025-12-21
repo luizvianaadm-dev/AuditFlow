@@ -78,7 +78,8 @@ def create_client_engagement(
 
     db_engagement = models.Engagement(
         name=engagement.name,
-        year=engagement.year,
+        start_date=engagement.start_date,
+        end_date=engagement.end_date,
         service_type=engagement.service_type,
         client_id=client.id
     )

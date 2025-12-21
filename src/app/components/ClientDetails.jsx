@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, FolderOpen, Calendar, ArrowLeft, Settings, Lock } from 'lucide-react';
+import { Plus, FolderOpen, Calendar, ArrowLeft, Settings, Lock, UploadCloud, Map } from 'lucide-react';
 import { getEngagements, createEngagement, getClientAcceptance } from '../services/clientService';
 import AccountMapper from './AccountMapper';
 import AcceptanceChecklist from './AcceptanceChecklist';
+import FSWizard from './FinancialStatements/FSWizard';
 
 const ClientDetails = ({ client, onBack, onSelectEngagement }) => {
   const [engagements, setEngagements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [showMapper, setShowMapper] = useState(false);
+  const [selectedMappingEngagement, setSelectedMappingEngagement] = useState(null);
   const [newEngagement, setNewEngagement] = useState({ name: '', year: new Date().getFullYear(), service_type: 'br_gaap' });
 
   // Acceptance State
@@ -52,17 +53,20 @@ const ClientDetails = ({ client, onBack, onSelectEngagement }) => {
 
   if (loading) return <div className="p-8 text-center text-slate-500">Carregando detalhes...</div>;
 
-  if (showMapper) {
+  if (selectedMappingEngagement) {
       return (
           <div className="p-6 max-w-5xl mx-auto">
               <button
-                onClick={() => setShowMapper(false)}
+                onClick={() => setSelectedMappingEngagement(null)}
                 className="flex items-center text-slate-500 hover:text-primary mb-6 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Voltar para Detalhes do Cliente
               </button>
-              <AccountMapper onComplete={() => setShowMapper(false)} />
+              <div className="mb-4">
+                  <h2 className="text-lg font-bold">Mapeamento para: {selectedMappingEngagement.name}</h2>
+              </div>
+              <AccountMapper engagementId={selectedMappingEngagement.id} onComplete={() => setSelectedMappingEngagement(null)} />
           </div>
       )
   }
@@ -83,14 +87,6 @@ const ClientDetails = ({ client, onBack, onSelectEngagement }) => {
           <p className="text-slate-500">Gerencie as auditorias deste cliente</p>
         </div>
         <div className="flex space-x-3">
-            <button
-                onClick={() => setShowMapper(true)}
-                className="flex items-center px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg transition-colors font-medium"
-            >
-                <Settings className="w-4 h-4 mr-2" />
-                Mapear Contas
-            </button>
-
             <div className="relative group">
                 <button
                     onClick={() => isAccepted && setShowModal(true)}
@@ -128,25 +124,39 @@ const ClientDetails = ({ client, onBack, onSelectEngagement }) => {
           {engagements.map(eng => (
             <div
               key={eng.id}
-              onClick={() => onSelectEngagement(eng)}
-              className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md hover:border-secondary transition-all cursor-pointer group"
+              className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md hover:border-secondary transition-all group relative"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
-                  <FolderOpen className="w-6 h-6 text-primary" />
-                </div>
-                <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded-full flex items-center">
-                  <Calendar className="w-3 h-3 mr-1" />
-                  {eng.year}
-                </span>
+              <div
+                  onClick={() => onSelectEngagement(eng)}
+                  className="cursor-pointer"
+              >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
+                      <FolderOpen className="w-6 h-6 text-primary" />
+                    </div>
+                    <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded-full flex items-center">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {eng.year}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-800">{eng.name}</h3>
+                  <p className="text-sm text-slate-500 mt-2">{eng.transactions?.length || 0} Transações importadas</p>
+                  <span className="inline-block mt-2 px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200 uppercase">
+                      {eng.service_type === 'br_gaap' ? 'BR GAAP' :
+                       eng.service_type === 'condo_audit' ? 'Condomínio (Auditoria)' :
+                       eng.service_type === 'condo_ppa' ? 'Condomínio (PPA)' : eng.service_type}
+                  </span>
               </div>
-              <h3 className="text-lg font-semibold text-slate-800">{eng.name}</h3>
-              <p className="text-sm text-slate-500 mt-2">{eng.transactions?.length || 0} Transações importadas</p>
-              <span className="inline-block mt-2 px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200 uppercase">
-                  {eng.service_type === 'br_gaap' ? 'BR GAAP' :
-                   eng.service_type === 'condo_audit' ? 'Condomínio (Auditoria)' :
-                   eng.service_type === 'condo_ppa' ? 'Condomínio (PPA)' : eng.service_type}
-              </span>
+
+              <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between">
+                  <button
+                      onClick={(e) => { e.stopPropagation(); setSelectedMappingEngagement(eng); }}
+                      className="text-xs flex items-center text-slate-500 hover:text-primary transition-colors"
+                  >
+                      <Map className="w-3 h-3 mr-1" />
+                      Mapear Contas
+                  </button>
+              </div>
             </div>
           ))}
         </div>
