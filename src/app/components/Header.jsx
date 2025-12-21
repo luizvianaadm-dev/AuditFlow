@@ -1,5 +1,6 @@
+// Updated menu order: Empresa, Equipe, Auditorias, Assinatura
 import React from 'react';
-import { LogOut, User as UserIcon, CreditCard, LayoutGrid } from 'lucide-react';
+import { LogOut, User as UserIcon, CreditCard, LayoutGrid, Users, Building } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,8 +9,8 @@ const Header = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-      logout();
-      navigate('/login');
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -17,37 +18,45 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center cursor-pointer" onClick={() => navigate('/app')}>
-             <div className="bg-gradient-to-tr from-blue-700 to-cyan-500 w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold mr-2">A</div>
-             <h1 className="text-xl font-bold text-slate-800 tracking-tight">AuditFlow</h1>
+            <div className="bg-gradient-to-tr from-primary to-secondary w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold mr-2">
+              {user?.name ? user.name[0].toUpperCase() : 'A'}
+            </div>
+            <h1 className="text-xl font-bold text-slate-800 tracking-tight">AuditFlow</h1>
           </div>
 
           <div className="flex items-center space-x-6">
             <nav className="flex items-center space-x-4">
-                <button onClick={() => navigate('/app')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
-                    <LayoutGrid className="w-4 h-4 mr-1.5" /> Dashboard
-                </button>
-                <button onClick={() => navigate('/billing')} className="text-slate-600 hover:text-blue-600 text-sm font-medium flex items-center">
-                    <CreditCard className="w-4 h-4 mr-1.5" /> Assinatura
-                </button>
+              <button onClick={() => navigate('/app/settings')} className="text-slate-600 hover:text-primary text-sm font-medium flex items-center">
+                <Building className="w-4 h-4 mr-1.5" /> Empresa
+              </button>
+              <button onClick={() => navigate('/app/team')} className="text-slate-600 hover:text-primary text-sm font-medium flex items-center">
+                <Users className="w-4 h-4 mr-1.5" /> Equipe
+              </button>
+              <button onClick={() => navigate('/app')} className="text-slate-600 hover:text-primary text-sm font-medium flex items-center">
+                <LayoutGrid className="w-4 h-4 mr-1.5" /> Auditorias
+              </button>
+              <button onClick={() => navigate('/billing')} className="text-slate-600 hover:text-primary text-sm font-medium flex items-center">
+                <CreditCard className="w-4 h-4 mr-1.5" /> Assinatura
+              </button>
             </nav>
 
             <div className="h-6 w-px bg-slate-200"></div>
 
             <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 text-sm text-slate-600">
-                    <div className="p-1 bg-slate-100 rounded-full">
-                        <UserIcon className="w-4 h-4 text-slate-500" />
-                    </div>
-                    <span className="hidden md:block">{user?.email}</span>
+              <div className="flex items-center space-x-2 text-sm text-slate-600">
+                <div className="p-1 bg-slate-100 rounded-full">
+                  <UserIcon className="w-4 h-4 text-slate-500" />
                 </div>
+                <span className="hidden md:block">{user?.name || user?.email}</span>
+              </div>
 
-                <button
+              <button
                 onClick={handleLogout}
                 className="flex items-center text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
-                >
+              >
                 <LogOut className="w-4 h-4 mr-1.5" />
                 Sair
-                </button>
+              </button>
             </div>
           </div>
         </div>
