@@ -23,7 +23,6 @@ export const getJobRoles = async () => {
     });
     if (!response.ok) throw new Error('Failed to fetch roles');
     return response.json();
-    return response.json();
 };
 
 export const getFirmDetails = async () => {
@@ -59,5 +58,14 @@ export const uploadLetterhead = async (file) => {
     });
 
     if (!response.ok) throw new Error('Failed to upload letterhead');
+    return response.json();
+};
+
+export const fixFirmStructure = async () => {
+    const response = await fetch(`${API_URL}/firm/fix-structure`, {
+        method: 'POST',
+        headers: getHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to fix structure');
     return response.json();
 };
