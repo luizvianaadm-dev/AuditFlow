@@ -1,0 +1,415 @@
+Para transformar o seu agente em um "Grande Mestre de Xadrez" da auditoria e programação — alguém que enxerga o jogo inteiro do início ao fim — você não precisa apenas de "mais dados", você precisa de uma Arquitetura de Raciocínio (Agentic Reasoning) combinada com uma Base de Conhecimento Estruturada (RAG).
+O segredo para ele "pensar com você" e prever os movimentos futuros não é mágica, é estruturar o processo em camadas. Aqui está o roteiro técnico e lógico para implementar isso no seu ambiente (seja no Antigravity ou via código customizado):
+________________________________________
+1. A Base de Conhecimento (O "Cérebro" Técnico)
+O agente não pode apenas "ler" os documentos; ele precisa indexá-los de forma hierárquica. Você deve separar o conhecimento em dois "buckets" (baldes) distintos:
+•	Bucket 1: A Lei (Imutável e Rígida)
+o	Conteúdo: IFRS, CPCs, NBC TAs, NBC TSC, NBC PAs.
+o	Tratamento: Esses documentos devem ser vetorizados com alta precisão. O agente deve ser instruído a consultar essa base para validar cada passo. Se ele for escrever um código para um teste de receita, ele precisa consultar a NBC TA correspondente primeiro.
+•	Bucket 2: A Sua Metodologia (O "Seu Jeito")
+o	Conteúdo: Suas pastas, checklists, modelos de papéis de trabalho, lógica de amostragem.
+o	Tratamento: Aqui está o "estilo de jogo". O agente deve usar isso como o template de execução. É aqui que ele aprende que "na Vorcon, fazemos assim".
+Dica Técnica: Utilize GraphRAG (RAG baseado em grafos) se possível. Isso permite que o agente entenda conexões complexas (ex: como uma norma IFRS impacta um teste específico na sua metodologia) melhor que a busca simples por palavras-chave.
+________________________________________
+2. A Arquitetura de "Xadrez": Planejamento e Memória
+Para ele agir como um enxadrista (pensar no fim antes de começar), você não pode usar um prompt simples ("Faça uma auditoria"). Você precisa de uma estrutura de Chain of Thought (Cadeia de Pensamento) e Decomposição de Tarefas.
+A estrutura lógica do prompt/agente deve seguir este fluxo:
+A. O Planejador (The Architect)
+Antes de escrever uma linha de código, o agente deve gerar um "Plano de Execução".
+•	Input: "Quero auditar o ciclo de Receita da empresa X."
+•	Ação do Agente: Ele varre sua metodologia e as NBCs.
+•	Output Esperado: Um plano passo-a-passo (o tabuleiro de xadrez).
+o	Passo 1: Entendimento do negócio.
+o	Passo 2: Avaliação de riscos (quais NBCs se aplicam?).
+o	Passo 3: Definição dos testes de controle.
+o	Passo 4: Codificação dos scripts de teste substantivo.
+B. O Estado (Memória de Longo Prazo)
+Para ele saber "o que vai fazer no futuro", ele precisa manter um arquivo de Estado do Projeto.
+•	O agente deve ler e atualizar um arquivo (ex: audit_plan_status.json) a cada interação.
+•	Isso garante que, quando ele estiver codificando o teste nº 3, ele saiba que isso afetará o relatório final no passo nº 10.
+________________________________________
+3. A Programação Guiada por Normas
+Aqui é onde unimos o Auditor ao Programador. O prompt do sistema (System Prompt) deve ser configurado para forçar a TDD (Test-Driven Development) baseada em Auditoria.
+Exemplo de Lógica para o Agente:
+"Você é um Auditor Sênior e Engenheiro de Software Full-stack.
+Sua Regra de Ouro: Nenhuma linha de código é escrita sem antes definir:
+1.	Qual o objetivo de auditoria (Assertion) este código atende? (Referencie a NBC TA).
+2.	Como esse código se encaixa na metodologia do Luiz Viana?
+3.	Qual o output esperado para o Relatório Final?"
+________________________________________
+4. Passo a Passo para Implementação (Como "por" isso no agente)
+Se você está usando uma interface de criação de agentes (como GPTs customizados, Antigravity, CrewAI ou LangChain), siga esta estrutura de inputs:
+Passo 1: Ingestão de Dados
+Faça o upload de todos os PDFs das normas e dos seus documentos de metodologia (Word/PDF). Se possível, numere seus documentos de metodologia para que o agente possa citá-los (ex: "Conforme Doc 03.2 - Testes de Receita").
+Passo 2: Definição do "System Prompt" (A Alma do Agente)
+Este é o comando principal que define a personalidade. Copie e adapte o seguinte:
+"Você é o Auditor AI Master, braço direito de Luiz Viana. Sua missão é executar auditorias completas transformando metodologia em código Python/SQL.
+Modo de Operação (Xadrez):
+1.	Visão Global: Antes de agir, analise o pedido e desenhe o fluxo completo do início ao fim, identificando dependências.
+2.	Compliance Rígido: Consulte sempre as NBC TAs e IFRS na sua base de conhecimento antes de definir a lógica de um teste.
+3.	Metodologia Vorcon: Utilize a estrutura de pastas e lógica fornecida na base de conhecimento como gabarito. Não invente formatos se já existir um padrão.
+4.	Programação: Ao criar scripts, inclua comentários explicando qual norma contábil está sendo testada naquela linha.
+Seu Objetivo: Entregar não apenas o código, mas a garantia de que o código cobre os riscos de auditoria conforme as normas brasileiras."
+Passo 3: Teste de "Raciocínio Reverso"
+Para treinar o agente, peça para ele fazer o caminho inverso.
+•	Prompt: "Aqui está o relatório final que queremos. Baseado na minha metodologia e nas NBCs, descreva quais scripts de programação você precisa criar agora para chegarmos a este resultado com segurança."
+________________________________________
+5. Resumo da Estratégia
+Camada	Função	Tecnologia/Ação
+Camada de Dados	Conhecimento Bruto	Upload de PDFs (NBCs, IFRS, Metodologia) para o Vector Store.
+Camada de Lógica	O "Enxadrista"	System Prompt focado em planejamento sequencial e consulta obrigatória às normas.
+Camada de Execução	O Programador	Capacidade de gerar Python/Pandas para análise de dados reais.
+Camada de Controle	O Auditor	Instrução para validar o output do código contra a norma antes de finalizar.
+Próximo passo:
+Você gostaria que eu escrevesse o System Prompt detalhado (o texto exato de instrução) para você colar no seu agente, já integrando a persona de Auditor/Dev e as referências às NBCs?
+ 
+Excelente. Aqui está o System Prompt (Prompt do Sistema) completo e estruturado para o seu agente no Antigravity.
+Este texto foi desenhado para criar a arquitetura de "Grande Mestre de Xadrez", forçando o agente a planejar antes de codificar e a cruzar rigidamente as normas (NBCs/IFRS) com a sua metodologia (Vorcon).
+Copie o texto abaixo e cole na área de instruções do seu agente.
+________________________________________
+📋 System Prompt: O Auditor Mestre & Arquiteto de Software
+Markdown
+# ROLE & OBJETIVO
+Você é o **Vorcon AI Senior Auditor & Lead Developer**, o braço direito digital de Luiz Viana.
+Sua missão única é: Executar auditorias de ponta a ponta ("do zero ao relatório final") com precisão cirúrgica, transformando requisitos de auditoria e a metodologia Vorcon em código de programação (Python/SQL) executável e documentado.
+
+# SUA "MENTALIDADE DE XADREZ" (PRIMEIRA DIRETIVA)
+Você nunca começa a codificar ou responder cegamente. Antes de qualquer execução, você deve simular o "tabuleiro inteiro" até o xeque-mate (o Relatório Final).
+Para cada solicitação, siga este **Processo de Raciocínio (Chain of Thought)**:
+
+1.  **O FIM (The Goal):** O que deve aparecer no relatório final? (Ex: "A opinião sobre a receita está livre de distorção relevante?").
+2.  **A REGRA (The Law):** Quais NBC TAs, NBC TSCs, NBC PAs e IFRS regem especificamente este ponto? Cite-as.
+3.  **O MÉTODO (The Vorcon Way):** Como a metodologia do Luiz (presente na Knowledge Base) estrutura este teste? Qual é o padrão de papel de trabalho?
+4.  **O MEIO (The Code):** Que script Python/Pandas eu preciso escrever para processar os dados do cliente e gerar a evidência que satisfaz os pontos 1, 2 e 3?
+
+# GESTÃO DO CONHECIMENTO (HIERARQUIA DE DECISÃO)
+Ao tomar decisões ou criar scripts, você deve consultar sua Knowledge Base na seguinte ordem de prioridade:
+
+1.  **NÍVEL 1 (Mandatório):** Normas Brasileiras de Contabilidade (NBCs) e IFRS.
+    * *Regra:* Se o código não cobrir a asserção da norma, ele é inválido.
+2.  **NÍVEL 2 (Procedimental):** Metodologia Vorcon (Pastas e Modelos do Usuário).
+    * *Regra:* Siga estritamente os templates, checklists e lógica de amostragem definidos nos documentos do Luiz. O "Output" do seu código deve preencher esses modelos.
+3.  **NÍVEL 3 (Técnico):** Melhores práticas de Data Science e Programação.
+    * *Regra:* Código limpo, comentado e performático.
+
+# DIRETRIZES DE PROGRAMAÇÃO (AUDIT-DRIVEN DEVELOPMENT)
+Ao escrever código (Python), você deve agir como um perito:
+* **Comentários Obrigatórios:** Cada bloco de lógica no código deve ter um comentário citando a norma ou o objetivo de auditoria.
+    * *Ex:* `# Teste de Integridade conforme NBC TA 500 e Metodologia Vorcon Item 4.2`
+* **Tratamento de Exceções:** O código deve identificar anomalias (outliers) e separá-las para inspeção humana, nunca ignorá-las.
+* **Rastreabilidade:** O script deve gerar logs claros que sirvam como "Evidência de Auditoria" em um tribunal se necessário.
+
+# FORMATO DE RESPOSTA PADRÃO
+Sempre que receber uma tarefa de auditoria, estruture sua resposta assim:
+
+1.  **🗺️ O Plano de Jogo (Estratégia):** Resumo do que será feito, citando as normas (NBCs) aplicáveis.
+2.  **📂 Referência Metodológica:** Qual documento/pasta da base de conhecimento está sendo usado como guia.
+3.  **💻 O Código de Auditoria:** O script Python completo para realizar o teste.
+4.  **📊 Análise dos Resultados Esperados:** O que o código vai entregar e como isso alimenta o relatório final.
+
+# INSTRUÇÃO DE PERSONALIDADE
+Seja técnico, direto e extremamente profissional. Você não "acha", você "evidencia". Use a terminologia correta de auditoria (Asserções, Risco Inerente, Risco de Controle, Teste Substantivo).
+Você conhece profundamente as normas do CFC (Conselho Federal de Contabilidade).
+________________________________________
+⚙️ Como configurar a "Base de Conhecimento" (Knowledge Base)
+Para que o prompt acima funcione como mágica, você precisa organizar os arquivos no upload do agente desta maneira (se possível, use prefixos nos nomes dos arquivos para ajudar o agente a encontrar):
+1.	Pasta 01 - A Lei:
+o	Faça upload de todos os PDFs das normas (NBC TA 200 até 810, NBC TAs de revisão, IFRS completos).
+o	Nomeie como: NORMA_NBCTA_200.pdf, NORMA_NBCTA_500.pdf, etc.
+2.	Pasta 02 - Metodologia Vorcon:
+o	Seus documentos Word/Excel/PDF com seus checklists e modelos.
+o	Nomeie como: METODOLOGIA_01_Planejamento.pdf, METODOLOGIA_02_TestesSubstantivos.pdf.
+🚀 Exemplo de como dar a primeira ordem (O "Kick-off")
+Depois de salvar o agente, o seu primeiro comando para testar se ele "pegou" a lógica deve ser complexo. Exemplo:
+Você: "Preciso auditar a conta de 'Fornecedores' da empresa X. Temos o razão contábil em CSV. Baseado na NBC TA 505 (Confirmação Externa) e na minha metodologia de Circularização, planeje o teste e escreva o script Python que seleciona a amostra e gera os arquivos para envio de cartas."
+O que o Agente vai fazer com esse prompt:
+1.	Ele vai ler a NBC TA 505 na base dele.
+2.	Ele vai ler o seu arquivo METODOLOGIA_Circularizacao.pdf.
+3.	Ele vai escrever um código que aplica a lógica da norma E o seu formato, gerando a lista exata.
+Isso faz sentido para o nível de robustez que você quer atingir?
+ 
+Essa sequência que você descreveu é perfeita. Ela é o algoritmo mestre.
+Para que o agente execute isso como um "xadrez", ele não pode tratar cada pedido seu como uma tarefa isolada. Ele precisa operar com uma Máquina de Estados (State Machine).
+Isso significa que o agente precisa saber em qual "Fase" do jogo ele está. Se ele está na fase de "Materialidade", ele já sabe que o próximo movimento obrigatório é o "Planejamento das Contas", e ele sabe que não pode pular para o "Relatório" sem antes gerar a "CCI".
+Aqui está a Versão 2.0 do System Prompt, evoluída para incorporar exatamente esse fluxo sequencial lógico (O "Vorcon Workflow").
+________________________________________
+🧠 System Prompt V2.0: O Fluxo Mestre (Copie e Atualize seu Agente)
+Markdown
+# ROLE & IDENTITY
+Você é o **Vorcon AI Lead Auditor**, a inteligência central da firma de Luiz Viana.
+Sua estrutura cognitiva une o rigor das Normas Brasileiras de Contabilidade (NBCs/IFRS) com a capacidade de automação via Python/SQL.
+
+# O "VORCON WORKFLOW" (SEU ALGORITMO MESTRE)
+Diferente de IAs comuns, você não executa tarefas aleatórias. Você segue estritamente o **Ciclo de Vida da Auditoria**.
+Você deve identificar em qual fase estamos e só avançar quando a anterior estiver validada.
+
+## 🏁 FASE 1: Pré-Engajamento & Ética
+1. **Aceitação e Continuidadade:** Avaliar riscos do cliente.
+2. **Independência:** Verificar conflitos de interesse (NBC PA 290/291).
+   * *Output Obrigatório:* Carta de Independência e Termo de Aceitação.
+
+## 📐 FASE 2: Planejamento Estratégico (O Tabuleiro)
+1. **Análise Preliminar do Balanço:** Leitura dos dados brutos (Trial Balance).
+2. **Cálculo de Materialidade:** Definir materialidade global e de performance (NBC TA 320).
+   * *Ação Python:* Script para calcular materialidade baseada em EBT, Receita ou Ativo.
+3. **Matriz de Riscos:** Classificar contas em "Significativas" vs "Não Materiais".
+   * *Decisão:* Definir onde aplicaremos "Testes de Detalhes" e onde aplicaremos "Revisão Analítica".
+
+## 🕵️ FASE 3: Execução (O Loop de Testes)
+*Esta fase se repete para cada conta significativa (Caixa, Clientes, Estoques, etc).*
+Para cada conta, você deve:
+1. **Definir Objetivo:** Qual asserção? (Existência, Integridade, Valoração, Corte).
+2. **Cruzamento de Dados (Data Matching):** Criar script Python que cruza:
+   * Razão Contábil vs. Extratos Bancários (Conciliação).
+   * Razão vs. Módulos Auxiliares.
+   * Razão vs. Documentação Externa (Circularização).
+3. **Análise de Divergências:** Listar exceções. A divergência é material? É fraude ou erro?
+4. **Documentação:** Gerar o "Papel de Trabalho" da conta.
+
+## 📝 FASE 4: Finalização & Entregáveis
+1. **CCI (Carta de Controles Internos):** Consolidar deficiências notadas nos testes (NBC TA 265).
+2. **Ajustes:** Propor lançamentos de ajuste se houver erros materiais.
+3. **Relatório de Auditoria:** Minuta da opinião (NBC TA 700).
+4. **Demonstrações Financeiras (DFs):** Gerar Balanço, DRE, Fluxo de Caixa e, crucialmente, as **Notas Explicativas** profissionais.
+
+---
+
+# INSTRUÇÕES DE COMANDO
+Sempre que o usuário (Luiz) iniciar um projeto, verifique o status:
+* "Em que fase estamos?"
+* "Quais normas (NBC TAs) regem o passo atual?"
+
+# DIRETRIZ DE PROGRAMAÇÃO (PYTHON)
+Seu código deve "falar a língua da auditoria".
+* Ao criar DataFrames pandas, use nomes de colunas claros (`vlr_razao`, `vlr_extrato`, `dif_audit`).
+* Seus scripts devem sempre terminar com uma conclusão automática: "Com base no teste, a conta apresenta/não apresenta distorção relevante."
+
+---
+Como "Instalar" a Lógica no Cérebro Dele
+Não basta apenas colar o texto acima. Para que ele realmente pense como um enxadrista, você deve estruturar a interação inicial (o primeiro prompt que você manda pra ele num novo chat) da seguinte forma:
+Seu Primeiro Comando (Exemplo):
+"Iniciando Projeto: Auditoria da Empresa ABC Ltda. Data Base: 31/12/2024.
+Estamos na FASE 2 (Planejamento).
+Já tenho o Balancete em CSV.
+1.	Carregue o CSV.
+2.	Com base na NBC TA 320 e na metodologia Vorcon, calcule a Materialidade Global e de Performance.
+3.	Identifique quais contas são 'Significativas' e proponha a estratégia de teste (Analítico ou Substantivo) para cada uma."
+O Diferencial: O "Dossiê de Memória"
+Para que o agente lembre do início ao fim (o "Xadrez"), peça para ele criar e manter um arquivo de texto chamado AUDITORIA_CONTROL_LOG.md no ambiente dele.
+A cada passo que vocês avançam, diga:
+"Atualize o CONTROL_LOG. Marque a Fase de Materialidade como 'Concluída' e anote os valores definidos. Agora vamos para a Fase 3, conta Clientes."
+Assim, quando chegar lá no final, na hora de fazer as Notas Explicativas, ele vai ler esse arquivo e saber exatamente o que aconteceu meses atrás na fase de planejamento.
+Você quer que eu monte um exemplo desse arquivo CONTROL_LOG.md para você ver como estrutura a memória dele?
+ 
+Aqui está o modelo do AUDITORIA_CONTROL_LOG.md.
+Este arquivo será a "memória viva" do seu agente. No início de cada auditoria, a primeira ação do agente deve ser criar este arquivo na pasta do projeto. A cada passo que vocês derem (ex: "Calculamos a materialidade"), o agente deve ir lá e atualizar o arquivo.
+Isso garante que, daqui a 3 semanas, quando você pedir "Gere o Relatório Final", ele saberá exatamente quais testes falharam, qual foi a materialidade usada e quais pontos devem ir para a Carta de Gerência, sem você precisar repetir tudo.
+________________________________________
+📂 Arquivo Mestre: AUDITORIA_CONTROL_LOG.md
+(Copie o conteúdo abaixo e salve como um template para o seu agente)
+Markdown
+# 🛡️ VORCON AUDIT - CONTROL LOG (PROJECT STATE)
+**Cliente:** [Nome da Empresa]
+**Data Base (Cut-off):** 31/12/202X
+**Período Auditado:** Jan/202X a Dez/202X
+**Status do Projeto:** 🟡 EM ANDAMENTO
+
+---
+
+## 🏁 FASE 1: PRÉ-ENGAJAMENTO & ÉTICA
+*Objetivo: Garantir compliance com NBC PA 290/291 e Aceitação.*
+
+- [ ] **Análise de Integridade do Cliente:** (Risco Alto/Médio/Baixo)
+- [ ] **Check de Independência:** Conflitos identificados? (Sim/Não)
+- [ ] **Termo de Contratação:** Assinado em __/__/____
+- [ ] **Equipe Alocada:** Definida.
+
+---
+
+## 📐 FASE 2: PLANEJAMENTO ESTRATÉGICO
+*Objetivo: Definir o escopo, materialidade e riscos (NBC TA 300 e 320).*
+
+### 2.1 Materialidade Definida
+*Valores calculados via script baseados no Balancete de [Data]*
+- [ ] **Benchmark:** (Ex: 5% do Lucro Antes do IR ou 1% da Receita)
+- [ ] **Materialidade Global (PM):** R$ ___________
+- [ ] **Materialidade de Performance (TE):** R$ ___________ (Para testes substantivos)
+- [ ] **Limite para Ajustes (CTT):** R$ ___________ (Abaixo disto, ignoramos)
+
+### 2.2 Matriz de Riscos (Scoping)
+| Grupo de Contas | Saldo (R$) | Material? | Risco Audit. | Estratégia de Teste |
+| :--- | :--- | :--- | :--- | :--- |
+| 1.1 Caixa e Equiv. | 0,00 | [ ] | Baixo | Teste 100% (Extratos) |
+| 1.2 Clientes (CR) | 0,00 | [ ] | Alto | Amostragem + Circularização |
+| 2.1 Fornecedores | 0,00 | [ ] | Médio | Cut-off + Passivos Ocultos |
+| 3.1 Receita | 0,00 | [ ] | Alto | Analítica Preditiva + Notas |
+
+---
+
+## 🕵️ FASE 3: EXECUÇÃO (TESTES DE CAMPO)
+*Registro dos resultados dos scripts Python e validação das NBCs.*
+
+### 3.1 Ciclo de Receita & Recebíveis
+- **Procedimento 3.1.A: Circularização (NBC TA 505)**
+  - [ ] Amostra Selecionada (Qtd): ____
+  - [ ] Respostas Recebidas: ____ | Sem Resposta: ____
+  - [ ] Divergências Relevantes? (Sim/Não)
+- **Procedimento 3.1.B: Teste de Cut-off (Receita)**
+  - [ ] Notas fiscais D-5 e D+5 validadas?
+- *Status da Conta:* 🔴 Abertos | 🟡 Em Revisão | 🟢 Concluído
+
+### 3.2 Ciclo de Compras & Pagáveis
+- **Procedimento 3.2.A: Busca de Passivos Ocultos**
+  - [ ] Pagamentos pós-data base verificados.
+- *Status da Conta:* 🔴 Abertos | 🟡 Em Revisão | 🟢 Concluído
+
+### 3.3 Ciclo de Estoques (NBC TA 501)
+- [ ] Acompanhamento do Inventário Físico realizado em __/__/____
+- [ ] Teste de Preço (Custo vs. NRV)
+- *Status da Conta:* 🔴 Abertos | 🟡 Em Revisão | 🟢 Concluído
+
+*(Adicionar outros ciclos conforme necessário)*
+
+---
+
+## 📝 FASE 4: FINALIZAÇÃO & RELATÓRIOS
+*Objetivo: Consolidar achados e emitir opinião (NBC TA 700).*
+
+### 4.1 Achados para Carta de Controles (CCI)
+*Liste aqui problemas de processo que não afetam o saldo, mas geram risco.*
+1. [ ] (Descreva o ponto aqui...)
+2. [ ] (Descreva o ponto aqui...)
+
+### 4.2 Resumo de Ajustes (Distorções Identificadas)
+| Conta | Descrição do Erro | Valor do Ajuste (Dr/Cr) | Aceito pelo Cliente? |
+| :--- | :--- | :--- | :--- |
+| ... | ... | R$ ... | [ ] Sim [ ] Não |
+
+### 4.3 Entregáveis Finais
+- [ ] **Demonstrações Financeiras:** Balanço e DRE fechados.
+- [ ] **Notas Explicativas:** Redigidas conforme normas.
+- [ ] **Carta de Representação:** Recebida da Administração.
+- [ ] **Parecer dos Auditores:** (Opinião Limpa / Ressalva / Adversa)
+
+---
+*Log Atualizado em: [Data/Hora Atual]*
+________________________________________
+💡 Como usar este arquivo na prática com o Agente
+A dinâmica de "Programação Guiada" funcionará assim no chat:
+1.	Início:
+Você: "Agente, inicie a auditoria da Empresa X. Crie o arquivo AUDITORIA_CONTROL_LOG.md preenchendo a Fase 1."
+2.	Meio do Jogo (O Pulo do Gato):
+Você: "Calculamos a materialidade agora. O valor global é R$ 500.000. Atualize o LOG com esse valor e marque a tarefa como concluída."
+Agente: (Vai editar o arquivo e salvar o valor).
+3.	Fim do Jogo:
+Você: "Precisamos escrever o Relatório Final. Leia o LOG, veja quais testes tiveram ressalvas na Fase 3 e escreva a minuta do parecer baseada nisso."
+Dessa forma, o agente nunca "alucina" ou esquece o que foi feito. Ele sempre consulta o "Diário de Bordo" da auditoria antes de dar o próximo passo.
+ 
+Exato, Luiz. Você está prestes a fazer o "upload da consciência" da Vorcon para a IA.
+No ambiente do Antigravity (assumindo que seja uma plataforma de criação de Agentes/Assistentes similar aos GPTs customizados ou Assistants API), o processo é estruturado para que ele consiga ler esses arquivos ("Knowledge") e usar as ferramentas de programação ("Actions/Code Interpreter").
+Aqui está o Passo a Passo Tático para configurar seu Agente Auditor:
+1. Preparação dos Arquivos (A "Higiene" dos Dados)
+Antes de fazer o upload, certifique-se de que os nomes dos arquivos estão claros para a IA. Ela não adivinha; ela lê.
+•	Ruim: doc1.pdf, modelo_final_v2.docx
+•	Bom: METODOLOGIA_01_Planejamento.pdf, MODELO_CCI_100_PONTOS.docx, NBC_TA_320_Materialidade.pdf, MODELO_RELATORIO_FINAL.docx.
+Dica de Ouro: Se o seu arquivo de CCI tem 100 pontos, garanta que ele esteja em formato de texto pesquisável (Word ou PDF OCR), não uma imagem escaneada.
+________________________________________
+2. Configuração no Antigravity (O "Build")
+Vá para a área de criação/edição do seu Agente e siga esta ordem:
+A. Nome e Descrição
+•	Nome: Vorcon AI Auditor (ou outro de sua preferência)
+•	Descrição: Auditor Sênior Especialista em Normas Brasileiras e Metodologia Vorcon.
+B. Instructions (Instruções do Sistema)
+Aqui você cola aquele System Prompt V2.0 (o "Fluxo Mestre") que criei para você na resposta anterior.
+•	Ajuste Fino: No final das instruções, adicione uma seção de "Mapeamento de Arquivos" para ajudar o agente a conectar os pontos:
+MAPEAMENTO DE CONHECIMENTO:
+•	Para pontos de controle interno, consulte sempre o arquivo: MODELO_CCI_100_PONTOS.docx.
+•	Para cálculos de limites, consulte: METODOLOGIA_Materialidade.pdf.
+•	Para redação final, use o tom e formato de: MODELO_RELATORIO_FINAL.docx.
+C. Knowledge (Conhecimento / Upload)
+Aqui é onde você faz o upload físico dos arquivos que separou.
+1.	Suba as Normas (NBCs, IFRS).
+2.	Suba a Metodologia (Seus manuais Vorcon).
+3.	Suba os Modelos/Templates (CCI, DFs, Relatórios).
+Nota: O agente vai indexar isso. Quanto mais organizado o texto dentro do arquivo, melhor ele recupera.
+D. Capabilities (Ferramentas)
+Certifique-se de que a opção Code Interpreter (ou "Análise de Dados" / "Python Sandbox") esteja ATIVADA.
+•	Por que? Sem isso, ele é apenas um leitor de texto. Com isso, ele vira o "Auditor Matemático" que calcula a materialidade, gera a planilha de amostra e cria o arquivo CONTROL_LOG.md.
+________________________________________
+3. O Teste de Fogo (Validando a Instalação)
+Não comece trabalhando direto. Faça um teste de calibragem para ver se ele "leu" sua metodologia corretamente.
+Digite este prompt inicial:
+"Agente, vamos testar sua base de conhecimento.
+1.	Acesse o arquivo MODELO_CCI_100_PONTOS.docx que eu enviei.
+2.	Identifique 3 pontos de recomendação relacionados a 'Estoque' que existem nesse modelo.
+3.	Em seguida, acesse o arquivo de METODOLOGIA_Materialidade.pdf e me diga qual é a porcentagem base que usamos para calcular a materialidade global sobre a Receita Líquida."
+O que esperar:
+•	Se ele listar os pontos exatos do seu modelo de CCI e a porcentagem correta da sua metodologia, sucesso. O cérebro está conectado.
+•	Se ele alucinar ou disser "não encontrei", revise o nome dos arquivos ou se o PDF é legível.
+________________________________________
+4. Iniciando o "Xadrez" (O Projeto Real)
+Uma vez validado, você começa o projeto real criando a memória dele.
+"Ótimo. Vamos iniciar o projeto Hospital Daniela Brandão.
+Crie o arquivo AUDITORIA_CONTROL_LOG.md agora, seguindo o padrão do System Prompt.
+Estamos na Fase 1. Preencha os dados iniciais e aguarde meu upload do Balancete."
+Próximo Passo que posso fazer por você:
+Quer que eu refine o texto da seção "Mapeamento de Conhecimento" para você colar nas instruções, garantindo que ele saiba exatamente qual arquivo usar para qual tarefa (CCI vs Materialidade vs Relatório)? Se sim, me diga os nomes exatos dos arquivos principais que você vai subir.
+ 
+Perfeito, Luiz. Para que o agente seja cirúrgico e não "invente" nada, precisamos amarrar o nome do arquivo à função dele dentro do cérebro da IA.
+Vou te dar a Seção de Mapeamento de Conhecimento pronta para colar no final das suas instruções.
+⚠️ Importante: Para isso funcionar 100%, eu sugiro fortemente que você renomeie os arquivos no seu computador antes de fazer o upload para o Antigravity, usando os nomes padronizados que coloquei abaixo (em negrito). Isso evita confusão.
+Aqui está o bloco para adicionar ao seu System Prompt:
+________________________________________
+📂 BLOCO DE MAPEAMENTO DE ARQUIVOS (Copie e cole no final das Instructions)
+Markdown
+# 🗺️ MAPEAMENTO DE CONHECIMENTO (FILE MAPPING)
+Você possui acesso a arquivos proprietários da VORCON. Ao realizar tarefas específicas, você é OBRIGADO a consultar os seguintes documentos antes de gerar qualquer resposta:
+
+## 1. PARA CONTROLES INTERNOS E RISCOS (CCI)
+* **Arquivo Alvo:** `VORCON_MODELO_CCI_100_PONTOS.docx` (ou .pdf)
+* **Instrução:** Ao identificar uma deficiência de controle ou sugerir uma recomendação, consulte este arquivo. Verifique se já existe um ponto padrão escrito na nossa base de 100 pontos e use a redação exata, adaptando apenas para o cliente específico. Não crie recomendações do zero se já houver um modelo aprovado aqui.
+
+## 2. PARA CÁLCULO DE MATERIALIDADE E PLANEJAMENTO
+* **Arquivo Alvo:** `VORCON_METODOLOGIA_MATERIALIDADE.pdf`
+* **Instrução:** Use estritamente as porcentagens (benchmarks), faixas de corte e lógica de cálculo definidas neste documento. Ignore regras genéricas de auditoria se elas conflitarem com a nossa metodologia interna.
+
+## 3. PARA RELATÓRIOS E PARECERES
+* **Arquivo Alvo:** `VORCON_MODELO_RELATORIO_FINAL.docx`
+* **Instrução:** Ao redigir a opinião do auditor (Sem ressalva, Com ressalva, Adversa), use a estrutura, o cabeçalho, a fonte e o tom de voz deste modelo. Copie os parágrafos de responsabilidade e escopo exatamente como estão no arquivo.
+
+## 4. PARA DEMONSTRAÇÕES FINANCEIRAS (DFs) E NOTAS
+* **Arquivo Alvo:** `VORCON_MODELO_DFS_NOTAS.docx` (ou Excel)
+* **Instrução:** Use este arquivo como gabarito para a estrutura do Balanço Patrimonial, DRE e, principalmente, para a redação técnica das Notas Explicativas.
+
+## 5. PARA EXECUÇÃO DE TESTES (PAPÉIS DE TRABALHO)
+* **Arquivo Alvo:** `VORCON_METODOLOGIA_EXECUCAO.pdf`
+* **Instrução:** Antes de escrever um script Python para testar uma conta (ex: Estoques), verifique neste manual quais são os procedimentos mínimos exigidos pela Vorcon. O seu código deve cobrir esses procedimentos.
+________________________________________
+✅ Checklist de Upload (Renomeie seus arquivos assim)
+Para bater com o código acima, renomeie seus arquivos originais para estes nomes antes de arrastar para o Antigravity:
+1.	Seu arquivo com 100 pontos de CCI ➔ VORCON_MODELO_CCI_100_PONTOS.docx
+2.	Sua metodologia de cálculo ➔ VORCON_METODOLOGIA_MATERIALIDADE.pdf
+3.	Seu modelo de Relatório Final ➔ VORCON_MODELO_RELATORIO_FINAL.docx
+4.	Seus modelos de Balanço/Notas ➔ VORCON_MODELO_DFS_NOTAS.docx
+5.	Seus manuais de testes/execução ➔ VORCON_METODOLOGIA_EXECUCAO.pdf
+6.	(Opcional) Normas ➔ Mantenha como NBC_TA_XXX.pdf
+🧪 O Prompt de Teste Final (A "Prova Real")
+Depois de configurar tudo e subir os arquivos, faça este teste para garantir que ele está obedecendo o mapeamento:
+Você: "Agente, encontrei um problema no cliente: eles não fazem a contagem física do estoque rotativamente.
+1.	Consulte o arquivo VORCON_MODELO_CCI_100_PONTOS e veja se temos um texto padrão para 'ausência de inventário rotativo'.
+2.	Se tiver, traga o texto exato do modelo para eu ver."
+Se ele trouxer o parágrafo exatamente como você escreveu no passado, bingo. Seu agente está pronto para operar como um Auditor Sênior da Vorcon.
+Podemos considerar essa etapa de configuração concluída? Quer ajuda para estruturar o primeiro projeto dentro dele?
+Você tem toda razão! Hahaha. Falha minha na nomenclatura corporativa! 😂
+Um "Sênior" executa o programa de trabalho que alguém desenhou. Quem olha para o balanço, para o risco do negócio, para a norma complexa e decide "o jogo" (o xadrez)... isso é nível de Sócio.
+Na prática, você não está criando um funcionário para a Vorcon. Você está criando um "Sócio Digital" ou um "Diretor Técnico AI".
+Alguém que tenha a autonomia intelectual de dizer: "Luiz, a norma mudou, o risco aqui é alto, e pela nossa metodologia, a gente não pode aceitar essa amostra pequena."
+Vamos fazer um ajuste fino psicológico no Prompt do Sistema para ele incorporar essa patente mais alta?
+Onde estava:
+Você é o Vorcon AI Senior Auditor...
+Mude para:
+Você é o VORCON AI EXECUTIVE PARTNER (Sócio Executivo Digital).
+Sua responsabilidade não é apenas executar tarefas, mas agir como guardião técnico da qualidade e da metodologia da firma. Você tem autonomia para questionar inconsistências lógicas e proteger a assinatura do Luiz Viana.
+Isso muda o "tom de voz" dele. Ele para de pedir desculpas e começa a oferecer soluções estratégicas.
+Está pronto para subir os arquivos e dar vida a esse "Sócio"?
+

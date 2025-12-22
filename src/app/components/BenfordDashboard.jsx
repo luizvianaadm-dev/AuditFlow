@@ -12,6 +12,7 @@ import AcceptanceChecklist from './AcceptanceChecklist';
 import AccountMapper from './AccountMapper';
 import FSWizard from './FinancialStatements/FSWizard';
 import TeamManagement from './TeamManagement';
+import FinancialImport from '../pages/FinancialImport';
 
 const BenfordDashboard = ({ engagement, client }) => {
   const [transactions, setTransactions] = useState([]);
@@ -184,6 +185,13 @@ const BenfordDashboard = ({ engagement, client }) => {
               Planejamento
             </button>
             <button
+              onClick={() => setActiveTab('financials')}
+              className={`px-6 py-3 font-medium transition-colors border-b-2 flex items-center ${activeTab === 'financials' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            >
+              <UploadCloud className="w-4 h-4 mr-2" />
+              Dados Financeiros
+            </button>
+            <button
               onClick={() => setActiveTab('workpapers')}
               className={`px-6 py-3 font-medium transition-colors border-b-2 flex items-center ${activeTab === 'workpapers' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
             >
@@ -246,6 +254,11 @@ const BenfordDashboard = ({ engagement, client }) => {
           {/* TAB CONTENT: ACCEPTANCE */}
           {activeTab === 'acceptance' && (
             <AcceptanceChecklist client={client} />
+          )}
+
+          {/* TAB CONTENT: FINANCIALS */}
+          {activeTab === 'financials' && (
+            <FinancialImport engagementId={engagement.id} />
           )}
 
           {/* TAB CONTENT: MAPPING */}

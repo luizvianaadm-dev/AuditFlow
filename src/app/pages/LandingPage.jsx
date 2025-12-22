@@ -31,7 +31,7 @@ const LandingPage = () => {
                 </p>
                 <div className="flex justify-center gap-4">
                     <button onClick={() => navigate('/register')} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold text-lg shadow-lg hover:shadow-blue-500/25 transition-all">Criar Conta Grátis</button>
-                    <button onClick={() => window.open('https://wa.me/5571994010014', '_blank')} className="bg-white border border-slate-200 hover:border-slate-300 text-slate-700 px-8 py-3 rounded-xl font-semibold text-lg transition-all">Agendar Demo</button>
+                    <button className="bg-white border border-slate-200 hover:border-slate-300 text-slate-700 px-8 py-3 rounded-xl font-semibold text-lg transition-all">Agendar Demo</button>
                 </div>
             </section>
 
@@ -58,7 +58,7 @@ const LandingPage = () => {
 
             {/* Footer */}
             <footer className="bg-slate-900 text-slate-400 py-12 px-6 text-center">
-                <p>© 2026 Vorcon Tech. Todos os direitos reservados. Vorcon Consultores Associados Ltda</p>
+                <p>© 2024 AuditFlow Tecnologia. Todos os direitos reservados.</p>
             </footer>
         </div>
     );
