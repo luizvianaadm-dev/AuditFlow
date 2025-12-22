@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'https://auditflow-api.railway.app';
+const API_URL = import.meta.env.VITE_API_URL || 'https://web-production-d91d6.up.railway.app';
 
 export const login = async (email, password) => {
   const formData = new URLSearchParams();
