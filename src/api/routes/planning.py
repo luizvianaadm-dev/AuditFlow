@@ -111,17 +111,22 @@ def save_materiality_calculation(
 
 from src.api.services.materiality import materiality_engine
 
+@router.get("/risk-factors")
+def get_risk_factors():
+    return materiality_engine.RISK_FACTORS
+
+class MaterialityCalculationRequest(schemas.BaseModel):
+    risks_present: List[str] = []
+
 @router.post("/{engagement_id}/materiality/calculate")
 def calculate_materiality_suggestion(
     engagement_id: int,
+    request: MaterialityCalculationRequest,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    # 1. Get Financial Data (Reuse logic or call internal function)
-    # For MVP, we reproduce the aggregation logic briefly or refactor.
-    # We'll use the aggregated values.
-    
-    # Verify Engagement (and get type)
+    # 1. Get Financial Data (Reuse logic)
+    # ... (Same aggregation logic)
     engagement = db.query(models.Engagement).join(models.Client).filter(
         models.Engagement.id == engagement_id,
         models.Client.firm_id == current_user.firm_id
@@ -130,7 +135,6 @@ def calculate_materiality_suggestion(
     if not engagement:
         raise HTTPException(status_code=404, detail="Engagement not found")
 
-    # Aggregate Transactions
     results = db.query(
         models.StandardAccount.type,
         func.sum(models.Transaction.amount).label("total_amount")
@@ -148,37 +152,36 @@ def calculate_materiality_suggestion(
 
     financial_data = {}
     for type_, amount in results:
-        # StandardAccount types mapping to Engine keys
         if type_ == "Revenue": financial_data["gross_revenue"] = float(amount)
         elif type_ == "Asset": financial_data["total_assets"] = float(amount)
         elif type_ == "Equity": financial_data["equity"] = float(amount)
-        # Net Profit needs calculation (Revenue - Expenses), approximate for MVP
-        # Expenses
         if type_ == "Expense": financial_data["total_expenses"] = float(amount)
 
-    # Calculate Net Profit (Roughly)
     rev = financial_data.get("gross_revenue", 0)
     exp = financial_data.get("total_expenses", 0)
     financial_data["net_profit"] = rev - exp
 
-    # 2. Get Suggestion
-    # Determine entity type (Client.entity_type or similar). 
-    # Provided Schema doesn't specify, we default to Empresarial unless Client name suggests Condominio
-    # Or add column later. For now, check client name?
+    # 2. Get Suggestion with Risks
     entity_type = "Empresarial"
     client_name = engagement.client.name.lower()
     if "condomini" in client_name or "assoc" in client_name:
         entity_type = "Condominio"
 
-    suggestion = materiality_engine.suggest_benchmark(entity_type, financial_data)
+    suggestion = materiality_engine.suggest_benchmark(entity_type, financial_data, request.risks_present)
     
     # 3. Calculate Values based on Suggestion
     base = suggestion.get("base_value", 0)
     pct = suggestion.get("recommended_pct", 0)
+    risk_score = suggestion.get("risk_score", 0)
     
     pm = materiality_engine.calculate_pm(base, pct)
-    te = materiality_engine.calculate_te(pm, "normal") # Default to Normal Risk
+    te = materiality_engine.calculate_te(pm, risk_score)
     ctt = materiality_engine.calculate_ctt(pm)
+    
+    # Apply Rounding (Adjusted Materiality)
+    pm = materiality_engine.calculate_adjusted_materiality(pm)
+    te = materiality_engine.calculate_adjusted_materiality(te)
+    ctt = materiality_engine.calculate_adjusted_materiality(ctt)
 
     return {
         "entity_type": entity_type,
@@ -190,4 +193,6 @@ def calculate_materiality_suggestion(
             "ctt": ctt
         }
     }
+
+
 

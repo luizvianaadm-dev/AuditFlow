@@ -181,13 +181,19 @@ export const saveMateriality = async (engagementId, data) => {
     return response.json();
 };
 
-return response.json();
+export const getRiskFactors = async () => {
+    const response = await fetch(`${API_URL}/engagements/risk-factors`, {
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch risk factors');
+    return response.json();
 };
 
-export const calculateMaterialitySuggestion = async (engagementId) => {
+export const calculateMaterialitySuggestion = async (engagementId, risksPresent = []) => {
     const response = await fetch(`${API_URL}/engagements/${engagementId}/materiality/calculate`, {
         method: 'POST',
         headers: getHeaders(),
+        body: JSON.stringify({ risks_present: risksPresent })
     });
     if (!response.ok) throw new Error('Failed to calculate materiality suggestion');
     return response.json();
