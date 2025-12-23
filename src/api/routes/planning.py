@@ -195,4 +195,146 @@ def calculate_materiality_suggestion(
     }
 
 
+# --- RISK MATRIX (SCOPING) ---
+
+@router.get("/{engagement_id}/risk-matrix")
+def get_risk_matrix(
+    engagement_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # 1. Fetch Materiality
+    materiality_record = db.query(models.AnalysisResult).filter(
+        models.AnalysisResult.engagement_id == engagement_id,
+        models.AnalysisResult.test_type == "materiality"
+    ).order_by(models.AnalysisResult.created_at.desc()).first()
+
+    if not materiality_record:
+        # Default empty if no materiality
+        return {"error": "Materiality not defined", "scoping": []}
+    
+    mat_data = materiality_record.result
+    pm = mat_data.get("global_materiality", 0)
+    te = mat_data.get("performance_materiality", 0)
+    ctt = (pm * 0.05) # fallback if not saved
+
+    # 2. Fetch Aggregated Data
+    results = db.query(
+        models.StandardAccount.code,
+        models.StandardAccount.name,
+        models.StandardAccount.type,
+        func.sum(models.Transaction.amount).label("total_amount")
+    ).join(
+        models.AccountMapping,
+        models.AccountMapping.standard_account_id == models.StandardAccount.id
+    ).join(
+        models.Transaction,
+        models.Transaction.account_name == models.AccountMapping.client_description
+    ).filter(
+        models.Transaction.engagement_id == engagement_id
+    ).group_by(
+        models.StandardAccount.code,
+        models.StandardAccount.name,
+        models.StandardAccount.type
+    ).all()
+
+    # 3. Fetch Saved Scoping (if any) to preserve overrides
+    saved_scoping = db.query(models.AnalysisResult).filter(
+        models.AnalysisResult.engagement_id == engagement_id,
+        models.AnalysisResult.test_type == "risk_matrix"
+    ).order_by(models.AnalysisResult.created_at.desc()).first()
+
+    saved_map = {}
+    if saved_scoping and saved_scoping.result:
+        for item in saved_scoping.result.get("scoping", []):
+             saved_map[item["account_code"]] = item
+
+    scoping = []
+    for code, name, type_, amount in results:
+        val = float(amount)
+        abs_val = abs(val)
+
+        # Skip zero balances?
+        if abs_val == 0: continue
+
+        # Auto-Classification
+        classification = "Non-Material"
+        risk = "Low"
+        strategy = "Analytical"
+        
+        if abs_val > pm:
+            classification = "Key Item" # Critical
+            risk = "High"
+            strategy = "Substantive"
+        elif abs_val > te:
+            classification = "Significant"
+            risk = "Medium"
+            strategy = "Substantive"
+        elif abs_val > ctt:
+            classification = "Relevant"
+            risk = "Low"
+            strategy = "Analytical"
+        else:
+            classification = "Trivial"
+            risk = "Low"
+            strategy = "None"
+        
+        # Override if exists
+        if code in saved_map:
+            saved = saved_map[code]
+            # Preserve user choices
+            risk = saved.get("risk", risk)
+            strategy = saved.get("strategy", strategy)
+            # Classification is usually calc-based, but could be overridden? Keep calc for now.
+
+        scoping.append({
+            "account_code": code,
+            "account_name": name,
+            "account_type": type_,
+            "balance": val,
+            "abs_balance": abs_val,
+            "pct_materiality": (abs_val / pm) if pm else 0,
+            "classification": classification,
+            "risk": risk,
+            "strategy": strategy
+        })
+    
+    # Sort by value desc
+    scoping.sort(key=lambda x: x["abs_balance"], reverse=True)
+
+    return {
+        "materiality": { "pm": pm, "te": te, "ctt": ctt },
+        "scoping": scoping
+    }
+
+@router.post("/{engagement_id}/risk-matrix")
+def save_risk_matrix(
+    engagement_id: int,
+    data: Dict[str, Any], # { scoping: [...] }
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # Verify Engagement
+    engagement = db.query(models.Engagement).join(models.Client).filter(
+        models.Engagement.id == engagement_id,
+        models.Client.firm_id == current_user.firm_id
+    ).first()
+
+    if not engagement:
+        raise HTTPException(status_code=404, detail="Engagement not found")
+
+    # Save as AnalysisResult
+    db_result = models.AnalysisResult(
+        engagement_id=engagement.id,
+        test_type="risk_matrix",
+        result=data,
+        executed_by_user_id=current_user.id
+    )
+    db.add(db_result)
+    db.commit()
+    db.refresh(db_result)
+
+    return db_result
+
+
 

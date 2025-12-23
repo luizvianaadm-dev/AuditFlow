@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { AlertCircle, UploadCloud, FileText, Play, History, RotateCcw, Download, Mail, ListChecks, Scale, ShieldCheck, ArrowRightLeft, BookOpen } from 'lucide-react';
+import { AlertCircle, UploadCloud, FileText, Play, History, RotateCcw, Download, Mail, ListChecks, Scale, ShieldCheck, ArrowRightLeft, BookOpen, UserIcon, Target } from 'lucide-react';
 import { getTransactions, uploadTransactionFile, runBenfordAnalysis, getAnalysisResults, downloadReport, downloadExport, pollTask, uploadLetterhead } from '../services/clientService';
 import MaterialityWizard from './MaterialityWizard';
+import RiskMatrix from './RiskMatrix'; // NEW
 import CircularizationManager from './CircularizationManager';
 import SamplingManager from './SamplingManager';
 import PayrollTest from './PayrollTest';
@@ -183,6 +184,13 @@ const BenfordDashboard = ({ engagement, client }) => {
             >
               <Scale className="w-4 h-4 mr-2" />
               Planejamento
+            </button>
+            <button
+              onClick={() => setActiveTab('risk_matrix')}
+              className={`px-6 py-3 font-medium transition-colors border-b-2 flex items-center ${activeTab === 'risk_matrix' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Matriz de Riscos
             </button>
             <button
               onClick={() => setActiveTab('financials')}
@@ -389,9 +397,15 @@ const BenfordDashboard = ({ engagement, client }) => {
             </>
           )}
 
+
           {/* TAB CONTENT: MATERIALITY */}
           {activeTab === 'materiality' && (
             <MaterialityWizard engagement={engagement} onComplete={loadHistory} />
+          )}
+
+          {/* TAB CONTENT: RISK MATRIX */}
+          {activeTab === 'risk_matrix' && (
+            <RiskMatrix engagement={engagement} onComplete={loadHistory} />
           )}
 
           {/* TAB CONTENT: SAMPLING */}
