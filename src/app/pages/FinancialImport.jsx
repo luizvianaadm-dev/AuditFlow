@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, FileSpreadsheet, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react';
-import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const FinancialImport = ({ engagementId }) => {
