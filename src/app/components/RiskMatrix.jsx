@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Target, Save, AlertTriangle, FileText, ArrowDown, ArrowUp } from 'lucide-react';
 import { API_URL } from '../services/authService';
-import { getHeaders } from '../services/clientService';
-
 const RiskMatrix = ({ engagement, onComplete }) => {
     const [scoping, setScoping] = useState([]);
     const [materiality, setMateriality] = useState(null);
@@ -17,9 +15,7 @@ const RiskMatrix = ({ engagement, onComplete }) => {
     const loadMatrix = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_URL}/engagements/${engagement.id}/risk-matrix`, {
-                headers: getHeaders()
-            });
+            const response = await fetch(`${API_URL}/engagements/${engagement.id}/risk-matrix`, {            });
             if (!response.ok) throw new Error("Failed to load Risk Matrix");
 
             const data = await response.json();
