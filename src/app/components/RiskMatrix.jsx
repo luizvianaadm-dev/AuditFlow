@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Target, Save, AlertTriangle, FileText, ArrowDown, ArrowUp } from 'lucide-react';
-import { getHeaders, API_URL } from '../services/authService';
+import { API_URL } from '../services/authService';
+import { getHeaders } from '../services/clientService';
 
 const RiskMatrix = ({ engagement, onComplete }) => {
     const [scoping, setScoping] = useState([]);
