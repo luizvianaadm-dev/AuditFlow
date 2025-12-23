@@ -181,6 +181,18 @@ export const saveMateriality = async (engagementId, data) => {
     return response.json();
 };
 
+return response.json();
+};
+
+export const calculateMaterialitySuggestion = async (engagementId) => {
+    const response = await fetch(`${API_URL}/engagements/${engagementId}/materiality/calculate`, {
+        method: 'POST',
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to calculate materiality suggestion');
+    return response.json();
+};
+
 export const uploadClientLogo = async (clientId, file) => {
     const formData = new FormData();
     formData.append('file', file);
