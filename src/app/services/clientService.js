@@ -393,3 +393,32 @@ export const subscribeToPlan = async (planId) => {
     if (!response.ok) throw new Error('Failed to subscribe');
     return response.json();
 };
+
+// --- WORKPAPERS (Execution) ---
+
+export const getEngagementWorkpapers = async (engagementId) => {
+    const response = await fetch(`${API_URL}/engagements/${engagementId}/workpapers`, {
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch workpapers');
+    return response.json();
+};
+
+export const getOrCreateWorkpaper = async (engagementId, accountCode, accountName) => {
+    const response = await fetch(`${API_URL}/engagements/${engagementId}/workpapers/${accountCode}?account_name=${encodeURIComponent(accountName || '')}`, {
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to load workpaper');
+    return response.json();
+};
+
+export const updateGenericWorkpaper = async (engagementId, accountCode, data) => {
+    const response = await fetch(`${API_URL}/engagements/${engagementId}/workpapers/${accountCode}`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to save workpaper');
+    return response.json();
+};
+

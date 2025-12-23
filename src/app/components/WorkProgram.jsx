@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, Circle, MessageSquare, AlertOctagon, ChevronDown, ChevronRight, Save } from 'lucide-react';
-import { getWorkPapers, generateWorkPapers, updateWorkPaper, addMistatement } from '../services/clientService';
+import WorkpaperContainer from './WorkpaperContainer';
+import { getWorkPapers, generateWorkPapers, updateWorkPaper, addMistatement, getEngagementWorkpapers } from '../services/clientService';
 
 const WorkProgram = ({ engagement }) => {
-  const [workpapers, setWorkpapers] = useState({}); // { "Area": [wp, wp] }
+  const [workpapers, setWorkpapers] = useState({});
   const [loading, setLoading] = useState(true);
   const [expandedAreas, setExpandedAreas] = useState({});
-  const [activeWp, setActiveWp] = useState(null); // ID of WP being edited (comment/mistatement)
+  const [activeWp, setActiveWp] = useState(null); 
   const [commentText, setCommentText] = useState('');
   const [mistatement, setMistatement] = useState({ description: '', amount: 0 });
+  const [scopedAccounts, setScopedAccounts] = useState([]);
+  const [selectedAccountForWp, setSelectedAccountForWp] = useState(null); // Account Object
 
   useEffect(() => {
     if (engagement) {
@@ -19,14 +20,29 @@ const WorkProgram = ({ engagement }) => {
   const loadData = async () => {
       setLoading(true);
       try {
+          // 1. Load Risk Matrix Scoping (Using the GET /risk-matrix endpoint directly or via helper?)
+          // We can use the endpoint mapping from RiskMatrix.jsx
+          const riskResponse = await fetch(`${import.meta.env.VITE_API_URL || 'https://auditflow-api.railway.app'}/engagements/${engagement.id}/risk-matrix`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('auditflow_token')}` }
+          });
+          if (riskResponse.ok) {
+              const riskData = await riskResponse.json();
+              if (riskData.scoping) {
+                  // Filter for execution? Or show all? Show Significant/Key.
+                  const executionScope = riskData.scoping.filter(s => 
+                      s.classification === 'Significant' || s.classification === 'Key Item' || s.strategy === 'Substantive'
+                  );
+                  setScopedAccounts(executionScope);
+              }
+          }
+
+          // 2. Load General Workpapers
           let data = await getWorkPapers(engagement.id);
-          // If empty, try generating
           if (Object.keys(data).length === 0) {
               await generateWorkPapers(engagement.id);
               data = await getWorkPapers(engagement.id);
           }
           setWorkpapers(data);
-          // Expand all by default
           const allAreas = {};
           Object.keys(data).forEach(area => allAreas[area] = true);
           setExpandedAreas(allAreas);
@@ -45,7 +61,6 @@ const WorkProgram = ({ engagement }) => {
       const newStatus = currentStatus === 'completed' ? 'open' : 'completed';
       try {
           await updateWorkPaper(wpId, { status: newStatus });
-          // Optimistic update or reload
           loadData();
       } catch (err) {
           alert("Erro ao atualizar status");
@@ -80,79 +95,134 @@ const WorkProgram = ({ engagement }) => {
           });
           alert("Divergência registrada!");
           setActiveWp(null);
-          // Ideally reload mistatements too
       } catch (err) {
           alert("Erro ao registrar divergência");
       }
   };
 
+  if (selectedAccountForWp) {
+      return (
+          <WorkpaperContainer 
+             engagement={engagement} 
+             account={selectedAccountForWp} 
+             onBack={() => setSelectedAccountForWp(null)} 
+          />
+      );
+  }
+
   if (loading) return <div className="p-8 text-center text-slate-500">Carregando Programa de Trabalho...</div>;
 
   return (
-    <div className="space-y-6">
-      {Object.entries(workpapers).map(([area, wps]) => (
-        <div key={area} className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-          <button
-            onClick={() => toggleArea(area)}
-            className="w-full flex justify-between items-center p-4 bg-slate-50 hover:bg-slate-100 transition-colors"
-          >
-            <div className="flex items-center font-bold text-slate-700">
-                {expandedAreas[area] ? <ChevronDown className="w-5 h-5 mr-2"/> : <ChevronRight className="w-5 h-5 mr-2"/>}
-                {area}
-            </div>
-            <div className="text-sm text-slate-500">
-                {wps.filter(w => w.status === 'completed').length} / {wps.length} Concluídos
-            </div>
-          </button>
-
-          {expandedAreas[area] && (
-              <div className="divide-y divide-slate-100">
-                  {wps.map(wp => (
-                      <div key={wp.id} className="p-4 hover:bg-slate-50 transition-colors">
-                          <div className="flex items-start justify-between">
-                              <div className="flex items-start space-x-3 flex-1">
-                                  <button
-                                    onClick={() => handleStatusChange(wp.id, wp.status)}
-                                    className={`mt-1 flex-shrink-0 transition-colors ${wp.status === 'completed' ? 'text-green-600' : 'text-slate-300 hover:text-slate-400'}`}
-                                  >
-                                      {wp.status === 'completed' ? <CheckCircle className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
-                                  </button>
-                                  <div>
-                                      <p className={`text-sm ${wp.status === 'completed' ? 'text-slate-500 line-through' : 'text-slate-800'}`}>
-                                          {wp.description}
-                                      </p>
-                                      {wp.comments && (
-                                          <p className="text-xs text-slate-500 mt-1 italic">
-                                              Obs: {wp.comments}
-                                          </p>
-                                      )}
-                                  </div>
+    <div className="space-y-8">
+      
+      {/* SECTION 1: ACCOUNT TESTING (New) */}
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-4 bg-indigo-50 border-b border-indigo-100">
+              <h3 className="font-bold text-indigo-900 flex items-center">
+                  <CheckCircle className="w-5 h-5 mr-2 text-indigo-600" />
+                  Auditoria de Saldos (Contas Significativas)
+              </h3>
+              <p className="text-xs text-indigo-700 mt-1">
+                  Definido na Matriz de Riscos. Clique para abrir os procedimentos.
+              </p>
+          </div>
+          <div className="divide-y divide-slate-100">
+              {scopedAccounts.length === 0 ? (
+                  <div className="p-6 text-center text-slate-500 text-sm">
+                      Nenhuma conta significativa identificada na Matriz de Riscos.
+                  </div>
+              ) : (
+                  scopedAccounts.map(acc => (
+                      <div 
+                        key={acc.account_code} 
+                        onClick={() => setSelectedAccountForWp(acc)}
+                        className="p-4 hover:bg-slate-50 transition-colors cursor-pointer flex justify-between items-center group"
+                      >
+                          <div>
+                              <div className="font-medium text-slate-800 group-hover:text-primary transition-colors">
+                                  {acc.account_code} - {acc.account_name}
                               </div>
-                              <div className="flex space-x-2 ml-4">
-                                  <button
-                                    onClick={() => openEdit(wp)}
-                                    className="p-1 text-slate-400 hover:text-secondary rounded"
-                                    title="Adicionar Nota"
-                                  >
-                                      <MessageSquare className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => openEdit(wp)} // Same modal for now
-                                    className="p-1 text-slate-400 hover:text-red-500 rounded"
-                                    title="Registrar Divergência"
-                                  >
-                                      <AlertOctagon className="w-4 h-4" />
-                                  </button>
+                              <div className="text-xs text-slate-500 mt-1 flex space-x-3">
+                                  <span>Saldo: R$ {acc.balance.toLocaleString()}</span>
+                                  <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600">{acc.strategy}</span>
                               </div>
                           </div>
+                          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary" />
                       </div>
-                  ))}
-              </div>
-          )}
-        </div>
-      ))}
+                  ))
+              )}
+          </div>
+      </div>
 
-      {/* Edit Modal */}
+      {/* SECTION 2: GENERAL PROCEDURES (Existing) */}
+      <div>
+        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-4 ml-1">Procedimentos Gerais & Controles</h3>
+        <div className="space-y-4">
+            {Object.entries(workpapers).map(([area, wps]) => (
+                <div key={area} className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                <button
+                    onClick={() => toggleArea(area)}
+                    className="w-full flex justify-between items-center p-4 bg-slate-50 hover:bg-slate-100 transition-colors"
+                >
+                    <div className="flex items-center font-bold text-slate-700">
+                        {expandedAreas[area] ? <ChevronDown className="w-5 h-5 mr-2"/> : <ChevronRight className="w-5 h-5 mr-2"/>}
+                        {area}
+                    </div>
+                    <div className="text-sm text-slate-500">
+                        {wps.filter(w => w.status === 'completed').length} / {wps.length} Concluídos
+                    </div>
+                </button>
+
+                {expandedAreas[area] && (
+                    <div className="divide-y divide-slate-100">
+                        {wps.map(wp => (
+                            <div key={wp.id} className="p-4 hover:bg-slate-50 transition-colors">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-start space-x-3 flex-1">
+                                        <button
+                                            onClick={() => handleStatusChange(wp.id, wp.status)}
+                                            className={`mt-1 flex-shrink-0 transition-colors ${wp.status === 'completed' ? 'text-green-600' : 'text-slate-300 hover:text-slate-400'}`}
+                                        >
+                                            {wp.status === 'completed' ? <CheckCircle className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
+                                        </button>
+                                        <div>
+                                            <p className={`text-sm ${wp.status === 'completed' ? 'text-slate-500 line-through' : 'text-slate-800'}`}>
+                                                {wp.description}
+                                            </p>
+                                            {wp.comments && (
+                                                <p className="text-xs text-slate-500 mt-1 italic">
+                                                    Obs: {wp.comments}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex space-x-2 ml-4">
+                                        <button
+                                            onClick={() => openEdit(wp)}
+                                            className="p-1 text-slate-400 hover:text-secondary rounded"
+                                            title="Adicionar Nota"
+                                        >
+                                            <MessageSquare className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => openEdit(wp)} // Same modal for now
+                                            className="p-1 text-slate-400 hover:text-red-500 rounded"
+                                            title="Registrar Divergência"
+                                        >
+                                            <AlertOctagon className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Edit Modal (Existing) */}
       {activeWp && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg">
